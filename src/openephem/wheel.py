@@ -84,7 +84,7 @@ def render_svg(chart: dict, size: int = 760, theme: str = "auto",
         x2, y2 = pol(r_out, lon0)
         P.append(f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" class="tick"/>')
         gx, gy = pol((r_zod_in + r_out) / 2.0, lon0 + 15.0)
-        label = SIGN_ABBR[i] if glyphs else SIGN_GLYPHS[i]
+        label = SIGN_ABBR[i] if glyphs else SIGN_GLYPHS[i] + "︎"  # text, not emoji
         P.append(f'<text x="{gx:.1f}" y="{gy:.1f}" class="sign" '
                  f'dominant-baseline="central" text-anchor="middle">{label}</text>')
 
@@ -116,7 +116,8 @@ def render_svg(chart: dict, size: int = 760, theme: str = "auto",
         tx2, ty2 = pol(r_house, lon)
         P.append(f'<line x1="{tx1:.1f}" y1="{ty1:.1f}" x2="{tx2:.1f}" y2="{ty2:.1f}" class="pmark"/>')
         gx, gy = pol(r_planet * 0.93, disp)
-        g = (PLANET_ABBR.get(name, name[:2]) if glyphs else PLANET_GLYPHS.get(name, name[:2]))
+        g = (PLANET_ABBR.get(name, name[:2]) if glyphs
+             else PLANET_GLYPHS.get(name, name[:2]) + "︎")  # text, not emoji
         retro = bodies[name].get("retro")
         P.append(f'<text x="{gx:.1f}" y="{gy:.1f}" class="planet" '
                  f'dominant-baseline="central" text-anchor="middle">{_esc(g)}</text>')
@@ -170,13 +171,13 @@ def _css(theme: str) -> str:
     .bg{fill:#ffffff}
     .ring{fill:none;stroke:#c9c9c9;stroke-width:1}
     .tick{stroke:#c9c9c9;stroke-width:1}
-    .sign{fill:#444;font:600 20px system-ui,sans-serif}
+    .sign{fill:#444;font:600 20px "Segoe UI Symbol","Noto Sans Symbols2","Apple Symbols",system-ui,sans-serif}
     .cusp{stroke:#e0e0e0;stroke-width:1}
     .cusp-angle{stroke:#9a9a9a;stroke-width:1.6}
     .housenum{fill:#999;font:11px system-ui,sans-serif}
     .anglelab{fill:#333;font:700 12px system-ui,sans-serif}
     .pmark{stroke:#bdbdbd;stroke-width:1}
-    .planet{fill:#111;font:600 20px system-ui,sans-serif}
+    .planet{fill:#111;font:600 20px "Segoe UI Symbol","Noto Sans Symbols2","Apple Symbols",system-ui,sans-serif}
     .deg{fill:#666;font:9px system-ui,sans-serif}
     .aspect{stroke-width:1.1;fill:none;opacity:.8}
     .title{fill:#222;font:600 15px system-ui,sans-serif}
