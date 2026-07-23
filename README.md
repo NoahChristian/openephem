@@ -1,5 +1,7 @@
 # openephem
 
+[![CI](https://github.com/NoahChristian/ElpisWeb/actions/workflows/ci.yml/badge.svg)](https://github.com/NoahChristian/ElpisWeb/actions/workflows/ci.yml)
+
 **A permissive, Swiss-Ephemeris-validated ephemeris & chart engine.**
 MIT-licensed, no AGPL — validated to arcseconds against Swiss Ephemeris across
 **year 0–2500**.
@@ -128,6 +130,18 @@ python validation/run_parity.py --fixtures ./fixtures --de440 de440.bsp --kernel
 Swiss Ephemeris `.se1` data and `sefstars.txt` (for the oracle authority) are
 **not** included — download them from the swisseph distribution. No AGPL code or
 data is redistributed in this repo.
+
+## Tests
+
+```bash
+pip install -e ".[test]" && pytest
+```
+A fast, **offline, data-free** suite (houses, aspects, vedic, timeplace, wheel,
+chart — no network, no ephemeris files). Exactness tests that compare the house
+systems against `swe_houses` run automatically **when `pyswisseph` is installed**
+and skip otherwise, so the MIT test run needs no AGPL dependency. CI (GitHub
+Actions) runs it on Python 3.10–3.13 (Linux + Windows) and proves the wheel
+builds and installs.
 
 ## Licensing
 
