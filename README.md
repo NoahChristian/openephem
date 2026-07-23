@@ -229,4 +229,14 @@ AGPL code was read or copied; only the (non-copyrightable) math.
 7. ~~Vedic / sidereal (ayanamsa)~~ — **done** (`vedic.py`: Lahiri/Fagan-Bradley/
    Krishnamurti/Raman ayanamsas + nakshatras/padas/rashis; `chart.py`
    `zodiac="sidereal"`, and the `zodiac`/`ayanamsa` API params).
-8. **Next:** WordPress/WooCommerce integration + auth in front of the service.
+
+**Status: feature-complete for this package's scope** — an accurate, permissive,
+swisseph-validated ephemeris + chart engine (tropical & sidereal), with SVG
+rendering and an HTTP API.
+
+## Out of scope (by design)
+
+* **Interpretation / "reading" layer** — turning a computed chart into meaning is
+  editorial content, not computation; it belongs to the consuming application.
+* **Site integration** (WordPress/WooCommerce, auth, hosting) — this package is a
+  self-contained engine + service; wiring it into a website is the consumer's job.
