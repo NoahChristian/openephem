@@ -65,6 +65,7 @@ class SkyfieldAsteroidEngine:
         self._kernel_dir = kernel_dir
         self._loaded: set[str] = set()
         self._target: dict[str, str] = {}
+        self._dt_override = None   # validation-only ΔT override (days); see planets_skyfield
 
         self._furnsh(planets_ephemeris)          # Earth + Sun for geocentric states
 
@@ -95,7 +96,8 @@ class SkyfieldAsteroidEngine:
         from skyfield.positionlib import ICRF
         ast = ASTEROIDS[name]
         tid = self._target_for(ast)
-        t = self._ts.ut1(jd=jd_ut)
+        t = (self._ts.tt_jd(jd_ut + self._dt_override) if self._dt_override is not None
+             else self._ts.ut1(jd=jd_ut))
         et = (t.tt - _J2000_JD) * 86400.0          # TDB seconds past J2000 (TT ~ TDB)
         state, _lt = self._sp.spkezr(tid, et, "J2000", "LT+S", "EARTH")  # apparent, km
         pos_au = np.array(state[:3]) / _AU_KM

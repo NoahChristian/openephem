@@ -249,15 +249,32 @@ def gmst_deg(jd_ut: float) -> float:
     return g % 360.0
 
 
+def nutation(jd: float) -> tuple[float, float]:
+    """Nutation in longitude (dpsi) and obliquity (deps), in degrees. Truncated
+    IAU-1980 series (largest terms) — ~1" accuracy, enough for house cusps."""
+    T = (jd - 2451545.0) / 36525.0
+    d2r = math.pi / 180.0
+    om = 125.04452 - 1934.136261 * T           # Moon ascending node
+    ls = 280.4665 + 36000.7698 * T             # Sun mean longitude
+    lm = 218.3165 + 481267.8813 * T            # Moon mean longitude
+    dpsi = (-17.20 * math.sin(d2r * om) - 1.32 * math.sin(d2r * 2 * ls)
+            - 0.23 * math.sin(d2r * 2 * lm) + 0.21 * math.sin(d2r * 2 * om)) / 3600.0
+    deps = (9.20 * math.cos(d2r * om) + 0.57 * math.cos(d2r * 2 * ls)
+            + 0.10 * math.cos(d2r * 2 * lm) - 0.09 * math.cos(d2r * 2 * om)) / 3600.0
+    return dpsi, deps
+
+
 def houses_from_jd(jd_ut: float, lat_deg: float, lon_deg: float,
                    system: str = "Placidus") -> Houses:
     """Houses from JD(UT) + geographic lat/lon — fully standalone (no Skyfield).
-    ARMC uses mean sidereal time and obliquity is mean-of-date; both omit nutation
-    (equation-of-equinoxes + nutation-in-obliquity < ~20\", below cusp resolution).
-    run_parity.py quantifies the residual against swisseph's apparent values."""
-    armc = (gmst_deg(jd_ut) + lon_deg) % 360.0
-    eps = mean_obliquity(jd_ut)   # jd_ut ~ jd_tt for obliquity (dT effect < 0.01")
-    return compute(armc, eps, lat_deg, system)
+    Uses APPARENT sidereal time (GMST + equation of equinoxes) and TRUE obliquity
+    (mean + nutation), matching swisseph's swe_houses inputs."""
+    dpsi, deps = nutation(jd_ut)               # dT effect on nutation args < 0.01"
+    eps_mean = mean_obliquity(jd_ut)
+    eps_true = eps_mean + deps
+    eq_equinox = dpsi * math.cos(math.radians(eps_mean))   # GAST - GMST
+    armc = (gmst_deg(jd_ut) + eq_equinox + lon_deg) % 360.0
+    return compute(armc, eps_true, lat_deg, system)
 
 
 if __name__ == "__main__":

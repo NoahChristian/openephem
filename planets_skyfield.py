@@ -72,11 +72,18 @@ class SkyfieldPlanetEngine:
         self._eph = load(ephemeris_path)
         self._earth = self._eph["earth"]
         self._moon = self._eph["moon"]
+        # Validation-only ΔT override (seconds->days): when set, the engine builds
+        # time as TT = UT + this, instead of Skyfield's own ΔT. run_parity sets it
+        # to swisseph's ΔT so parity isolates the ephemeris from ΔT-model drift
+        # (which differs far from the present). Production leaves it None.
+        self._dt_override = None
 
     # -- time helpers --------------------------------------------------------
 
     def _t(self, jd_ut: float):
-        return self._ts.ut1(jd=jd_ut)
+        if self._dt_override is None:
+            return self._ts.ut1(jd=jd_ut)
+        return self._ts.tt_jd(jd_ut + self._dt_override)
 
     def _tt_centuries(self, jd_ut: float) -> float:
         """Julian centuries of TT from J2000 — uses Skyfield's Δt (permissive)."""
@@ -122,11 +129,14 @@ class SkyfieldPlanetEngine:
     # -- analytic mean points (Meeus, mean equinox of date) ------------------
 
     def mean_node(self, jd_ut: float) -> float:
-        """Mean longitude of the ascending lunar node (Meeus 47.7)."""
+        """Mean longitude of the ascending lunar node (Meeus 47.7). swisseph's
+        mean node is referred to the TRUE equinox of date, so add nutation in
+        longitude (leading -17.2" sin(node) term; fit offline, ~1" RMS vs swisseph)."""
         T = self._tt_centuries(jd_ut)
         om = (125.0445479 - 1934.1362891 * T + 0.0020754 * T**2
               + T**3 / 467441.0 - T**4 / 60616000.0)
-        return om % 360.0
+        corr = -17.214 * math.sin(math.radians(om)) / 3600.0
+        return (om + corr) % 360.0
 
     def mean_apogee(self, jd_ut: float) -> float:
         """Mean Black Moon Lilith = mean lunar apogee (mean perigee + 180), plus

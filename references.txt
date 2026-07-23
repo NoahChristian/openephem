@@ -1,5 +1,6 @@
 ==============================================================================
 references.txt  —  ephemeris migration source list
+Project (c) 2026 Elizabeth Huston, Ph.D. and Noah Christian, Ph.D. — MIT (see LICENSE).
 Compiled 2026-07 during the swisseph-replacement research.
 Not legal advice. Where an obligation is load-bearing for the business, have
 counsel read the actual license text against the actual deployment.

@@ -148,31 +148,50 @@ Bodies need skyfield + DE440 (+ kernels); without them the chart still returns
 houses / angles / aspects + warnings. Run it behind the web server and add auth
 there — the service does none itself.
 
-## Validation — parity vs swisseph: **PASS**
+## Validation — parity vs swisseph: **PASS (1750–2500)**
 
-Full run: 609 instants, 1950-2050, Skyfield+DE440s candidate vs swisseph SWIEPH
-(DE431) authority. Max ecliptic-longitude error per group:
+Full run: **2283 instants over 1750–2500** (every 120 d), Skyfield+DE440 candidate
+vs swisseph SWIEPH authority, with ΔT aligned to swisseph so the test isolates the
+ephemeris. Max ecliptic-longitude error per group:
 
 | Group | max err | Group | max err |
 |-------|---------|-------|---------|
-| 9 planets (Sun-Pluto) | **< 0.26"** | Mean / True Node | 18.7" / **0.04"** |
-| Moon | **1.9"** | Mean / Oscu Lilith | **2.3"** / 1.4" |
-| Chiron + Ceres/Pallas/Juno/Vesta | **< 1.9"** | 32 fixed stars | **< 0.85"** |
-| Houses (Placidus/WholeSign/Equal): Asc/MC/Vtx/EP/cusps | **< 38"** | | |
+| 9 planets (Sun–Pluto) | **< 0.41"** | Mean / True Node | **2.7"** / 0.18" |
+| Moon | **0.22"** | Mean / Oscu Lilith | 4.3" / 1.4" |
+| Chiron + Ceres/Pallas/Juno/Vesta | < 11" *(note)* | 32 fixed stars | < 7.4" *(Castor)* |
+| Houses (Placidus/WholeSign/Equal): Asc/MC/Vtx/EP/cusps | **< 40"** | | |
 
-Zero sign-flips. `RESULT: PASS`. Reproduce with the workflow above.
+Zero sign-flips. `RESULT: PASS`. (Within 1900–2100 the planets agree to
+milliarcsec–tenths; the table above is the *worst case over 750 years*.)
 
-How the tricky ones are done:
-* **TrueNode / OscuLilith** — osculating orbit expressed in Skyfield's ecliptic-
-  of-date frame (no extra precession term — that was the bug the harness caught).
-* **MeanLilith** — mean apogee + swisseph's periodic term `2*(perigee - node)`
-  (period ~1095 d, amp ~416"); coefficients fit offline against swisseph (facts),
-  residual ~1" RMS.
-* **Asteroids** — Horizons SPK are data **type 21**, which jplephem can't read;
-  `spiceypy` (CSPICE, MIT) reads them, Skyfield does the of-date conversion.
-* **MeanNode ~18"** — Meeus-vs-swisseph mean-element difference (a *mean* point;
-  well within tolerance). **Outer planets** use DE440 barycenters (still sub-arcsec).
-  **Houses** use mean sidereal time + mean obliquity (nutation omitted, < ~20").
+How the pieces match swisseph:
+* **ΔT alignment** — swisseph & Skyfield agree on Delta-T through ~2100, then
+  diverge (extrapolation; −297 s by 2500). For a *UT* instant that shifts fast
+  bodies (Moon up to ~190" at 2500) — a real, documented uncertainty, **not** an
+  ephemeris error. `run_parity` feeds swisseph's ΔT to the candidate so parity
+  measures the ephemeris; production uses Skyfield's ΔT (they agree 1900–2100).
+* **TrueNode / OscuLilith** — osculating orbit in Skyfield's of-date ecliptic.
+* **MeanNode / MeanLilith** — Meeus mean elements + nutation-in-longitude
+  (swisseph refers them to the TRUE equinox); MeanLilith also adds the
+  `2·(perigee−node)` term. Coefficients fit offline vs swisseph (facts), ~1" RMS.
+* **Houses** — apparent sidereal time (GMST + equation of equinoxes) + true
+  obliquity (mean + nutation), matching `swe_houses`.
+* **Asteroids** — `spiceypy` reads Horizons SPK **type 21** (jplephem can't);
+  Skyfield does the of-date conversion. The ≤11" spread over 750 yr is JPL's vs
+  swisseph's **different asteroid orbit solutions** diverging over centuries
+  (0.003° — nil for astrology), not a code error.
+* **Fixed stars** — < 1.5" except high-proper-motion multiples (Castor ~7") where
+  swisseph's vs Hipparcos's proper motions diverge over the long baseline.
+
+## License & authors
+
+MIT (see [`LICENSE`](../../LICENSE)). Copyright &copy; 2026
+**Elizabeth Huston, Ph.D.** and **Noah Christian, Ph.D.**
+
+Third-party libraries and data keep their own licenses (Skyfield MIT, spiceypy/
+CSPICE, Moshier PD, JPL/NASA PD, ESA Hipparcos, OpenStreetMap ODbL, IANA tzdata
+PD) — see `references.txt`. Swiss Ephemeris (AGPL) is **not** distributed here;
+it is used only by the optional offline validation tools.
 
 ## Still deferred (low priority)
 
