@@ -129,11 +129,18 @@ class SkyfieldPlanetEngine:
         return om % 360.0
 
     def mean_apogee(self, jd_ut: float) -> float:
-        """Mean Black Moon Lilith = mean lunar apogee = mean perigee + 180."""
+        """Mean Black Moon Lilith = mean lunar apogee (mean perigee + 180), plus
+        the periodic correction that swisseph's mean apogee carries. The dominant
+        term is 2*(perigee - node), period ~1095 d, amplitude ~416". Coefficients
+        were fit offline against swisseph (facts); residual vs swisseph is ~1" RMS
+        (was ~290" without it)."""
         T = self._tt_centuries(jd_ut)
         perigee = (83.3532465 + 4069.0137287 * T - 0.0103200 * T**2
                    - T**3 / 80053.0 + T**4 / 18999000.0)
-        return (perigee + 180.0) % 360.0
+        node = 125.0445479 - 1934.1362891 * T
+        corr = (-416.434 * math.sin(math.radians(2.0 * perigee - 2.0 * node))
+                - 17.242 * math.sin(math.radians(node))) / 3600.0
+        return (perigee + 180.0 + corr) % 360.0
 
     # -- osculating node / Lilith (from the Moon's instantaneous orbit) -------
 
@@ -158,14 +165,13 @@ class SkyfieldPlanetEngine:
         v = np.array(v_d.au_per_d)
         h = np.cross(r, v)                                  # angular momentum
         # ascending node n = k x h with k = ecliptic north -> n = (-h_y, h_x, 0)
-        node_j2000 = math.degrees(math.atan2(h[0], -h[1]))
+        node = math.degrees(math.atan2(h[0], -h[1]))
         # eccentricity vector -> perigee; apogee (Lilith) is the opposite direction
         e_vec = np.cross(v, h) / self.MU - r / float(np.linalg.norm(r))
-        apo_j2000 = math.degrees(math.atan2(-e_vec[1], -e_vec[0]))
-        # precess J2000-ecliptic longitude to equinox of date
-        T = self._tt_centuries(jd_ut)
-        p_a = (5028.796195 * T + 1.1054348 * T * T) / 3600.0
-        return (node_j2000 + p_a) % 360.0, (apo_j2000 + p_a) % 360.0
+        apo = math.degrees(math.atan2(-e_vec[1], -e_vec[0]))
+        # Skyfield's ecliptic_frame is already the equinox of date — parity showed
+        # that adding a precession term injected exactly p_A as error. No correction.
+        return node % 360.0, apo % 360.0
 
 
 def _demo():

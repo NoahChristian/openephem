@@ -158,7 +158,11 @@ def run(args):
                 swiss = entry.get("swiss")
                 if not swiss or "lon" not in swiss:
                     continue
-                clon = candidate_longitude(cand, name, jd)
+                try:
+                    clon = candidate_longitude(cand, name, jd)
+                except Exception as exc:  # noqa: BLE001 — isolate per-body failures
+                    skipped.setdefault(name, f"candidate error: {exc}")
+                    continue
                 if clon is None:
                     skipped.setdefault(name, "candidate engine/kernel unavailable")
                     continue

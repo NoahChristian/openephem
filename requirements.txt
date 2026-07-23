@@ -9,6 +9,8 @@ pyswisseph>=2.10.3.2
 # Also required by run_parity.py. Pulls numpy + jplephem + sgp4 transitively.
 skyfield>=1.49
 pandas>=1.5        # Skyfield uses pandas to load the Hipparcos catalog
+spiceypy>=6.0      # CSPICE wrapper (MIT) — reads Horizons SPK type 21 for asteroids
+                   # (jplephem can't; used with Skyfield for the of-date conversion)
 #
 # Data files (NOT pip-installable — public domain, fetch/generate once, offline):
 #   * de440.bsp  (~114 MB) — JPL DE440, Skyfield auto-downloads or place locally.

@@ -1,34 +1,32 @@
 #!/usr/bin/env python3
 """
-asteroids_skyfield.py — permissive asteroid engine (Skyfield + JPL SPK).  [SHIP]
+asteroids_skyfield.py — permissive asteroid engine (spiceypy read + Skyfield frame).  [SHIP]
 
-Step 3 of the migration. Computes geocentric apparent ecliptic longitude OF DATE
-for Chiron + Ceres, Pallas, Juno, Vesta, from per-body JPL SPK (.bsp) kernels.
+Computes geocentric apparent ecliptic longitude OF DATE for Chiron + Ceres,
+Pallas, Juno, Vesta from per-body JPL SPK (.bsp) kernels.
 
-Licensing: Skyfield is MIT; JPL Horizons SPK kernels are US-Government public
-domain (17 U.S.C. sec.105). No AGPL, no CC-BY-SA. Clean to ship.
+Why spiceypy: JPL Horizons small-body SPK kernels are SPK data **type 21**
+(Extended Modified Difference Arrays), which jplephem (Skyfield's native reader)
+cannot parse ("SPK data type 21 not yet supported"). spiceypy (CSPICE) reads
+type 21 fine, so we use it to get the geocentric apparent state, then hand the
+J2000 vector to Skyfield for the of-date ecliptic conversion (matches swisseph to
+sub-arcsecond — validated in run_parity).
 
-Getting the kernels (one-time, offline)
----------------------------------------
-For each body, generate a small-body SPK from JPL Horizons and drop the .bsp in
---kernel-dir. Browser: https://ssd.jpl.nasa.gov/horizons/app.html
-  * Ephemeris Type: "SPK File"
-  * Target Body: e.g. "Chiron (2060)", "1 Ceres", "2 Pallas", "3 Juno", "4 Vesta"
-  * Time span covering your chart range (e.g. 1550..2650 to match DE440)
-  * Download the .bsp; name it as in ASTEROID_TABLE (or pass a custom path).
-Chiron note: its orbit is only reliable from ~700 AD onward (chaotic before) —
-the same limit swisseph has.
+Licensing: spiceypy is MIT (wraps NASA CSPICE, public domain); Skyfield is MIT;
+the SPK kernels are JPL public domain. No AGPL, no copyleft.
 
-Extensibility: add a body by appending ONE line to ASTEROID_TABLE.
-
-SPK-ID note: JPL's small-body SPK id convention has varied (2000000+num vs
-20000000+num). We DON'T rely on a hardcoded id — the engine auto-detects the
-target segment in the generated kernel (override per-body if needed).
+Kernels: generate with fetch_kernels.py (Horizons API). Extensibility: add a body
+by appending ONE line to ASTEROID_TABLE.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+
+_AU_KM = 149597870.7
+_J2000_JD = 2451545.0
+_SIGNS = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra",
+          "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]
 
 
 @dataclass(frozen=True)
@@ -36,10 +34,9 @@ class Asteroid:
     name: str
     number: int             # IAU minor-planet number (for Horizons lookup)
     kernel: str             # expected .bsp filename in --kernel-dir
-    spk_id: int | None = None   # optional override; else auto-detected
+    spk_id: int | None = None   # optional override; else auto-detected from kernel
 
 
-# One line per body. Extend freely.
 ASTEROID_TABLE = [
     Asteroid("Chiron", 2060, "chiron.bsp"),
     Asteroid("Ceres",     1, "ceres.bsp"),
@@ -49,9 +46,6 @@ ASTEROID_TABLE = [
 ]
 ASTEROIDS = {a.name: a for a in ASTEROID_TABLE}
 
-_SIGNS = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra",
-          "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]
-
 
 def sign_and_degree(lon: float) -> str:
     lon %= 360.0
@@ -59,98 +53,71 @@ def sign_and_degree(lon: float) -> str:
 
 
 class SkyfieldAsteroidEngine:
+    """Read SPK via CSPICE (spiceypy), convert to ecliptic-of-date via Skyfield."""
+
     def __init__(self, planets_ephemeris: str = "de440.bsp", kernel_dir: str = "."):
         import os
+        import spiceypy as sp
         from skyfield.api import load
         self._os = os
-        self._load = load
+        self._sp = sp
         self._ts = load.timescale()
-        self._planets = load(planets_ephemeris)   # provides earth + Sun/SSB chain
-        self._earth = self._planets["earth"]
         self._kernel_dir = kernel_dir
-        self._targets: dict[str, object] = {}      # name -> resolvable VectorFunction
+        self._loaded: set[str] = set()
+        self._target: dict[str, str] = {}
 
-    # -- kernel loading / target resolution ----------------------------------
+        self._furnsh(planets_ephemeris)          # Earth + Sun for geocentric states
 
-    def _resolve_target(self, ast: Asteroid):
-        if ast.name in self._targets:
-            return self._targets[ast.name]
+    # -- kernel management ---------------------------------------------------
+
+    def _furnsh(self, path: str):
+        if path not in self._loaded:
+            self._sp.furnsh(path)
+            self._loaded.add(path)
+
+    def _target_for(self, ast: Asteroid) -> str:
+        if ast.name in self._target:
+            return self._target[ast.name]
         path = self._os.path.join(self._kernel_dir, ast.kernel)
         if not self._os.path.exists(path):
             raise FileNotFoundError(
-                f"{ast.name}: SPK kernel not found at {path}. Generate it from JPL "
-                f"Horizons (Target '{ast.name} ({ast.number})', Ephemeris Type 'SPK File').")
-        kernel = self._load(path)
+                f"{ast.name}: SPK kernel not found at {path}. Generate it with "
+                f"fetch_kernels.py (Horizons: Target '{ast.name} ({ast.number})').")
+        self._furnsh(path)
+        tid = str(ast.spk_id) if ast.spk_id else str(list(self._sp.spkobj(path))[0])
+        self._target[ast.name] = tid
+        return tid
 
-        code = ast.spk_id or self._auto_target_code(kernel)
-        # Find the segment for this target to learn its center, then chain so the
-        # asteroid is expressed relative to the SSB (matching earth's frame).
-        center = self._center_of(kernel, code)
-        body = kernel[code]
-        if center == 0:                      # already SSB-centered
-            target = body
-        elif center == 10:                   # Sun-centered -> add SSB->Sun
-            target = self._planets["sun"] + body
-        else:                                # best effort: add SSB->center
-            target = self._planets[center] + body
-
-        self._targets[ast.name] = target
-        return target
-
-    @staticmethod
-    def _segment_codes(kernel):
-        codes = getattr(kernel, "codes", None)
-        if codes is None:
-            codes = [seg.target for seg in kernel.segments]
-        return list(codes)
-
-    def _auto_target_code(self, kernel) -> int:
-        # Small-body targets carry large codes (>= 1,000,000). Pick the largest.
-        big = [c for c in self._segment_codes(kernel) if c >= 1_000_000]
-        if not big:
-            raise ValueError("could not auto-detect asteroid target code in kernel; "
-                             "set Asteroid.spk_id explicitly")
-        return max(big)
-
-    @staticmethod
-    def _center_of(kernel, code) -> int:
-        for seg in kernel.segments:
-            if seg.target == code:
-                return seg.center
-        return 0
-
-    # -- computations --------------------------------------------------------
+    # -- computation ---------------------------------------------------------
 
     def ecliptic_longitude(self, jd_ut: float, name: str) -> float:
+        import numpy as np
+        from skyfield.positionlib import ICRF
         ast = ASTEROIDS[name]
-        target = self._resolve_target(ast)
+        tid = self._target_for(ast)
         t = self._ts.ut1(jd=jd_ut)
-        app = self._earth.at(t).observe(target).apparent()
-        _lat, lon, _dist = app.ecliptic_latlon(epoch=t)
+        et = (t.tt - _J2000_JD) * 86400.0          # TDB seconds past J2000 (TT ~ TDB)
+        state, _lt = self._sp.spkezr(tid, et, "J2000", "LT+S", "EARTH")  # apparent, km
+        pos_au = np.array(state[:3]) / _AU_KM
+        p = ICRF(pos_au, t=t, center=399)          # geocentric ICRF position
+        _lat, lon, _dist = p.ecliptic_latlon(epoch=t)
         return lon.degrees % 360.0
 
     def available(self) -> list[str]:
         """Names whose kernels are present (so run_parity can skip missing ones)."""
-        out = []
-        for ast in ASTEROID_TABLE:
-            if self._os.path.exists(self._os.path.join(self._kernel_dir, ast.kernel)):
-                out.append(ast.name)
-        return out
+        return [a.name for a in ASTEROID_TABLE
+                if self._os.path.exists(self._os.path.join(self._kernel_dir, a.kernel))]
 
 
 def _demo():
     try:
-        eng = SkyfieldAsteroidEngine()
+        eng = SkyfieldAsteroidEngine(planets_ephemeris="de440s.bsp", kernel_dir="./kernels")
         present = eng.available()
     except (ImportError, FileNotFoundError) as exc:
-        print(f"Need skyfield + de440.bsp + asteroid kernels: {exc}")
+        print(f"Need spiceypy + skyfield + de440s.bsp + kernels: {exc}")
         return
-    if not present:
-        print("No asteroid kernels found. Generate chiron.bsp/ceres.bsp/... from Horizons.")
-        return
-    jd = 2451545.0
     for name in present:
-        lon = eng.ecliptic_longitude(jd, name)
+        lon = eng.ecliptic_longitude(_J2000_JD, name)
         print(f"{name:8} {sign_and_degree(lon):>16}  ({lon:8.4f})")
 
 

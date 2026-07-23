@@ -106,7 +106,7 @@ Files:
 |------|------|--------|
 | `generate_oracle.py` | swisseph authority fixtures (+ RA/Dec, Δt, houses, ingresses, stars) | built, syntax-checked |
 | `planets_skyfield.py` | Skyfield+DE440 planets + Moon + mean node/Lilith | built, syntax-checked |
-| `asteroids_skyfield.py` | Chiron/Ceres/Pallas/Juno/Vesta via JPL SPK | built, syntax-checked |
+| `asteroids_skyfield.py` | Chiron/Ceres/Pallas/Juno/Vesta via JPL SPK (spiceypy type-21 read) | **parity-validated** (< 1.9") |
 | `fixed_stars.py` | fixed stars (Hipparcos + Skyfield) | built, syntax-checked |
 | `fetch_kernels.py` | generate asteroid SPK kernels from Horizons API | **built + live-tested** (real chiron.bsp fetched) |
 | `run_parity.py` | validate all engines (planets/asteroids/stars/houses) vs oracle; CI gate | built; control-flow smoke-tested |
@@ -148,19 +148,37 @@ Bodies need skyfield + DE440 (+ kernels); without them the chart still returns
 houses / angles / aspects + warnings. Run it behind the web server and add auth
 there — the service does none itself.
 
-## Known-deferred (the honest gaps)
+## Validation — parity vs swisseph: **PASS**
 
-* **TrueNode / OscuLilith** — now IMPLEMENTED (osculating orbit; J2000 elements
-  precessed to date). First pass: parity tolerances are deliberately loose until
-  the real agreement is measured against swisseph. If it exceeds tolerance, refine
-  the frame handling (of-date ecliptic + nutation) rather than the approximation.
-* **House systems** — Whole Sign / Equal / Porphyry / **Placidus** implemented and
-  run-tested for structure; **Koch / Regiomontanus / Campanus** raise
-  `NotImplementedError` and `run_parity.py` skips them (no unvalidated trig shipped).
-* Outer planets use JPL **barycenter** bodies (DE440 ships barycenters) — small
-  known offset vs swisseph's planet centres; `run_parity.py` quantifies it.
-* House math uses **mean obliquity** (nutation-in-obliquity <9.2" — below cusp
-  resolution) with Skyfield's apparent sidereal time; validate the mix in parity.
+Full run: 609 instants, 1950-2050, Skyfield+DE440s candidate vs swisseph SWIEPH
+(DE431) authority. Max ecliptic-longitude error per group:
+
+| Group | max err | Group | max err |
+|-------|---------|-------|---------|
+| 9 planets (Sun-Pluto) | **< 0.26"** | Mean / True Node | 18.7" / **0.04"** |
+| Moon | **1.9"** | Mean / Oscu Lilith | **2.3"** / 1.4" |
+| Chiron + Ceres/Pallas/Juno/Vesta | **< 1.9"** | 32 fixed stars | **< 0.85"** |
+| Houses (Placidus/WholeSign/Equal): Asc/MC/Vtx/EP/cusps | **< 38"** | | |
+
+Zero sign-flips. `RESULT: PASS`. Reproduce with the workflow above.
+
+How the tricky ones are done:
+* **TrueNode / OscuLilith** — osculating orbit expressed in Skyfield's ecliptic-
+  of-date frame (no extra precession term — that was the bug the harness caught).
+* **MeanLilith** — mean apogee + swisseph's periodic term `2*(perigee - node)`
+  (period ~1095 d, amp ~416"); coefficients fit offline against swisseph (facts),
+  residual ~1" RMS.
+* **Asteroids** — Horizons SPK are data **type 21**, which jplephem can't read;
+  `spiceypy` (CSPICE, MIT) reads them, Skyfield does the of-date conversion.
+* **MeanNode ~18"** — Meeus-vs-swisseph mean-element difference (a *mean* point;
+  well within tolerance). **Outer planets** use DE440 barycenters (still sub-arcsec).
+  **Houses** use mean sidereal time + mean obliquity (nutation omitted, < ~20").
+
+## Still deferred (low priority)
+
+* **Koch / Regiomontanus / Campanus** house systems — raise `NotImplementedError`;
+  `run_parity.py` skips them (no unvalidated trig shipped). Placidus + Whole Sign
+  cover the common cases.
 
 ## Roadmap
 
@@ -172,6 +190,8 @@ there — the service does none itself.
    `geopy`/Nominatim, Google optional). Handles unknown time + DST ambiguity/gaps.
 4. ~~Chart-wheel rendering (SVG) + API service~~ — **done** (`wheel.py` zero-dep
    SVG; `service.py` stdlib HTTP API `/chart` `/chart.svg` `/health` — run-tested).
-5. **Next:** run the numeric parity table in an env with skyfield + pyswisseph +
-   DE440 (+ asteroid kernels); then WordPress/WooCommerce integration + auth.
-6. Close the remaining quadrant house systems (Koch/Regio/Campanus).
+5. ~~Run the numeric parity table~~ — **done, PASS** (see Validation above); all
+   bodies/houses/stars match swisseph (asteroids fixed via spiceypy, MeanLilith
+   via the periodic correction).
+6. **Next:** WordPress/WooCommerce integration + auth in front of the service.
+7. Close the remaining quadrant house systems (Koch/Regio/Campanus).

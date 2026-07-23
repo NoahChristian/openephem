@@ -81,10 +81,9 @@ def east_point(armc_deg: float, eps_deg: float) -> float:
 
 
 def vertex(armc_deg: float, eps_deg: float, lat_deg: float) -> float:
-    """Vertex: the Ascendant of the co-latitude, taken on the western side."""
-    anti = ascendant((armc_deg + 180.0) % 360.0, eps_deg, 90.0 - abs(lat_deg))
-    # Anti-vertex is the eastern counterpart; vertex is opposite.
-    return (anti + 180.0) % 360.0
+    """Vertex: the Ascendant computed for the co-latitude on the opposite meridian
+    IS the vertex directly (parity vs swisseph confirmed no extra 180° flip)."""
+    return ascendant((armc_deg + 180.0) % 360.0, eps_deg, 90.0 - abs(lat_deg))
 
 
 # --------------------------------------------------------------------------- #
