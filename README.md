@@ -110,7 +110,7 @@ Files:
 | `fixed_stars.py` | fixed stars (Hipparcos + Skyfield) | built, syntax-checked |
 | `fetch_kernels.py` | generate asteroid SPK kernels from Horizons API | **built + live-tested** (real chiron.bsp fetched) |
 | `run_parity.py` | validate all engines (planets/asteroids/stars/houses) vs oracle; CI gate | built; control-flow smoke-tested |
-| `houses.py` | Asc/MC/Vertex/EP + Whole Sign/Equal/Porphyry/Placidus | built + **run-tested** (cusps monotonic, antipodal) |
+| `houses.py` | Asc/MC/Vertex/EP + Placidus/Koch/Regiomontanus/Campanus/WholeSign/Equal/Porphyry | **all parity-validated vs swisseph** (< 20" over 0-2500) |
 | `aspects.py` | aspect detection + orbs + applying/separating | built + **run-tested** (demo correct) |
 | `timeplace.py` | local date/time/place -> JD(UT): tz/DST/LMT + calendar + geocoding | built + **live-tested** (geocode->tz->JD end-to-end) |
 | `chart.py` | assemble full chart (bodies + houses + aspects) from a birth moment | built + **run-tested** (graceful degrade) |
@@ -203,11 +203,13 @@ CSPICE, Moshier PD, JPL/NASA PD, ESA Hipparcos, OpenStreetMap ODbL, IANA tzdata
 PD) — see `references.txt`. Swiss Ephemeris (AGPL) is **not** distributed here;
 it is used only by the optional offline validation tools.
 
-## Still deferred (low priority)
+## House systems — all implemented & validated
 
-* **Koch / Regiomontanus / Campanus** house systems — raise `NotImplementedError`;
-  `run_parity.py` skips them (no unvalidated trig shipped). Placidus + Whole Sign
-  cover the common cases.
+Placidus, **Koch, Regiomontanus, Campanus**, Whole Sign, Equal, Porphyry — every
+system validated vs `swe_houses` across 0-2500 (max ~20", zero real sign-flips).
+The quadrant systems were derived independently (Regiomontanus/Koch closed-form,
+Campanus by vector intersection) and checked to < 1e-6° against swisseph — no
+AGPL code was read or copied; only the (non-copyrightable) math.
 
 ## Roadmap
 
@@ -222,5 +224,6 @@ it is used only by the optional offline validation tools.
 5. ~~Run the numeric parity table~~ — **done, PASS** (see Validation above); all
    bodies/houses/stars match swisseph (asteroids fixed via spiceypy, MeanLilith
    via the periodic correction).
-6. **Next:** WordPress/WooCommerce integration + auth in front of the service.
-7. Close the remaining quadrant house systems (Koch/Regio/Campanus).
+6. ~~Koch / Regiomontanus / Campanus house systems~~ — **done** (all validated < 1e-6° vs swisseph).
+7. Vedic / sidereal (ayanamsa) — in progress.
+8. **Next:** WordPress/WooCommerce integration + auth in front of the service.

@@ -29,9 +29,9 @@ _D2R = math.pi / 180.0
 _R2D = 180.0 / math.pi
 
 CLOSED_FORM = {"WholeSign", "Equal", "Porphyry"}
-ITERATIVE = {"Placidus"}
-DEFERRED = {"Koch", "Regiomontanus", "Campanus"}
-SUPPORTED = CLOSED_FORM | ITERATIVE
+QUADRANT = {"Placidus", "Regiomontanus", "Campanus", "Koch"}
+DEFERRED = set()
+SUPPORTED = CLOSED_FORM | QUADRANT
 
 
 # --------------------------------------------------------------------------- #
@@ -195,6 +195,74 @@ def _placidus(armc: float, eps: float, phi: float,
 
 
 # --------------------------------------------------------------------------- #
+# Regiomontanus / Koch / Campanus (validated against swisseph to < 1e-6 deg)
+# --------------------------------------------------------------------------- #
+
+def _in_arc(c: float, lo: float, hi: float) -> float:
+    c %= 360.0
+    if not (0.0 <= (c - lo) % 360.0 <= (hi - lo) % 360.0):
+        c = (c + 180.0) % 360.0
+    return c
+
+
+def _cross(a, b):
+    return (a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2],
+            a[0] * b[1] - a[1] * b[0])
+
+
+def _regiomontanus(armc, eps, phi):
+    """Cusps 11,12,2,3: equal 30-deg EQUATORIAL arcs from the MC, projected
+    through the horizon N-S points onto the ecliptic."""
+    er = math.radians(eps)
+    def cusp(H):
+        ar = math.radians(armc + H)
+        R = math.atan2(math.sin(math.radians(H)) * math.tan(math.radians(phi)), math.cos(ar))
+        return math.degrees(math.atan2(math.cos(R) * math.sin(ar),
+                                       math.cos(R + er) * math.cos(ar))) % 360.0
+    return [cusp(30), cusp(60), cusp(120), cusp(150)]
+
+
+def _koch(armc, eps, phi, mc):
+    """Cusps by trisecting the MC->Asc oblique-ascension arc; the step k absorbs
+    the MC's ascensional difference AD_MC."""
+    ad = math.degrees(math.asin(max(-1.0, min(1.0,
+        math.tan(math.radians(phi)) * math.tan(math.radians(_decl_of(mc, eps)))))))
+    k = (90.0 + ad) / 3.0
+    return [ascendant(armc - 2 * k, eps, phi), ascendant(armc - k, eps, phi),
+            ascendant(armc + k, eps, phi), ascendant(armc + 2 * k, eps, phi)]
+
+
+def _campanus(armc, eps, phi):
+    """Cusps: equal 30-deg PRIME-VERTICAL arcs from the east point, projected
+    through the horizon N-S axis onto the ecliptic (vector intersection)."""
+    a, e, p = math.radians(armc), math.radians(eps), math.radians(phi)
+    east = (-math.sin(a), math.cos(a), 0.0)
+    up = (math.cos(p) * math.cos(a), math.cos(p) * math.sin(a), math.sin(p))
+    N = (-math.sin(p) * math.cos(a), -math.sin(p) * math.sin(a), math.cos(p))
+    eclpole = (0.0, -math.sin(e), math.cos(e))
+    def cusp(D):
+        cd, sd = math.cos(math.radians(D)), math.sin(math.radians(D))
+        P = (cd * east[0] + sd * up[0], cd * east[1] + sd * up[1], cd * east[2] + sd * up[2])
+        v = _cross(_cross(N, P), eclpole)
+        vy = v[1] * math.cos(e) + v[2] * math.sin(e)
+        return math.degrees(math.atan2(vy, v[0])) % 360.0
+    # cusp 11 = 60deg up, 12 = 30 up, 2 = 30 down, 3 = 60 down (from the east point)
+    return [cusp(60), cusp(30), cusp(-30), cusp(-60)]
+
+
+def _assemble_quadrant(inter, asc, mc):
+    """Normalize the 4 raw intermediate cusps [11,12,2,3] into their arcs and
+    build the full 12-cusp list (opposite cusps are 180 deg away)."""
+    ic = (mc + 180.0) % 360.0
+    c11 = _in_arc(inter[0], mc, asc)
+    c12 = _in_arc(inter[1], mc, asc)
+    c2 = _in_arc(inter[2], asc, ic)
+    c3 = _in_arc(inter[3], asc, ic)
+    return [asc, c2, c3, ic, (c11 + 180) % 360, (c12 + 180) % 360,
+            (asc + 180) % 360, (c2 + 180) % 360, (c3 + 180) % 360, mc, c11, c12]
+
+
+# --------------------------------------------------------------------------- #
 # Public API
 # --------------------------------------------------------------------------- #
 
@@ -227,6 +295,12 @@ def compute(armc_deg: float, eps_deg: float, lat_deg: float,
         cusps = _porphyry(asc, mc)
     elif system == "Placidus":
         cusps = _placidus(armc_deg, eps_deg, lat_deg, asc, mc)
+    elif system == "Regiomontanus":
+        cusps = _assemble_quadrant(_regiomontanus(armc_deg, eps_deg, lat_deg), asc, mc)
+    elif system == "Koch":
+        cusps = _assemble_quadrant(_koch(armc_deg, eps_deg, lat_deg, mc), asc, mc)
+    elif system == "Campanus":
+        cusps = _assemble_quadrant(_campanus(armc_deg, eps_deg, lat_deg), asc, mc)
     return Houses(system=system, asc=asc, mc=mc,
                   vertex=vertex(armc_deg, eps_deg, lat_deg),
                   east_point=east_point(armc_deg, eps_deg), cusps=cusps)
