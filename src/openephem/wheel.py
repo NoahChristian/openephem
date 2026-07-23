@@ -192,7 +192,10 @@ def _css(theme: str) -> str:
     if theme == "light":
         return base
     if theme == "dark":
-        return base + dark.replace("@media (prefers-color-scheme: dark){", ":root{").rstrip("}\n ") + "}</style>"
+        # Apply the dark palette unconditionally: drop the media wrapper and its
+        # closing brace, keeping only the inner rules, in a well-formed <style>.
+        body = dark.split("{", 1)[1].rsplit("}", 1)[0]
+        return base + "\n    <style>" + body + "</style>"
     return base + dark  # auto
 
 

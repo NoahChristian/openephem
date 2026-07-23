@@ -1,4 +1,6 @@
 import re
+import xml.etree.ElementTree as ET
+import pytest
 from openephem import wheel, houses
 
 
@@ -25,6 +27,12 @@ def test_svg_no_nan_coordinates():
     s = wheel.render_svg(_mock_chart())
     # 'nan' appears in 'dominant-baseline'; only flag it inside numeric attributes
     assert not re.search(r'"[-\d.]*nan[-\d.]*"', s.lower())
+
+
+@pytest.mark.parametrize("theme", ["light", "dark", "auto"])
+def test_svg_wellformed_xml_all_themes(theme):
+    # every theme must emit well-formed XML (dark once emitted an unbalanced <style>)
+    ET.fromstring(wheel.render_svg(_mock_chart(), theme=theme))
 
 
 def test_svg_without_houses():
