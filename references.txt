@@ -1,0 +1,171 @@
+==============================================================================
+references.txt  —  ephemeris migration source list
+Compiled 2026-07 during the swisseph-replacement research.
+Not legal advice. Where an obligation is load-bearing for the business, have
+counsel read the actual license text against the actual deployment.
+==============================================================================
+
+Legend:
+  [SHIP]  = code/data that would ship in the product -> obligation attaches
+  [GEN]   = used only offline to GENERATE fixtures -> no shipping obligation
+  PD      = public domain / not copyrightable
+
+
+==============================================================================
+TIER 1 — NEEDED FOR ATTRIBUTION OR LICENSING
+(Anything whose code or data the project uses. Obligations attach; comply.)
+==============================================================================
+
+1. Swiss Ephemeris / pyswisseph  [GEN only — MUST NOT SHIP]
+   https://www.astro.com/swisseph/
+   https://github.com/astrorigin/pyswisseph
+   License: AGPL-3.0 OR Astrodienst Professional License (dual).
+   Obligation: AGPL sec.13 forces full app source disclosure to network users.
+     We use it ONLY offline to emit reference numbers (facts). Do NOT link it
+     into the shipped web app and do NOT vendor its source or .se1 files.
+     If it ever ships, you owe either AGPL source disclosure OR a paid license.
+
+2. Skyfield  [SHIP]
+   https://github.com/skyfielders/python-skyfield   (license: MIT — confirmed)
+   https://rhodesmill.org/skyfield/
+   Obligation: MIT — retain the copyright + permission notice in your distribution
+     (e.g. a THIRD-PARTY-NOTICES file). No copyleft. Safe to ship commercially.
+
+3. JPL Horizons / JPL Solar System Dynamics — ephemerides & small-body SPK kernels
+   [SHIP data — for Chiron / asteroids]
+   https://ssd.jpl.nasa.gov/horizons/            (system)
+   https://ssd.jpl.nasa.gov/horizons/manual.html (SPK .bsp generation — confirmed)
+   https://ssd.jpl.nasa.gov/sb/orbits.html       (small-body orbits)
+   Status: US Government work -> not copyrightable (17 U.S.C. sec.105), effectively PD.
+   Obligation: none legally required for the DATA. Acknowledgment of JPL/NASA is
+     requested/courteous. (See Tier 2 note re: NASA "commercial" caveats = imagery,
+     not data.)
+
+4. Hipparcos catalog (ESA)  [SHIP data — for fixed stars, default path]
+   Loaded by Skyfield via CDS mirror (hip_main.dat).
+   https://www.cosmos.esa.int/web/hipparcos
+   Status: ESA astrometric data, freely usable.
+   Obligation: acknowledgment of ESA/Hipparcos requested. Coordinates themselves
+     are facts (not copyrightable) — freezing per-star values in-repo removes the
+     file dependency entirely (see fixed_stars.py INLINE_COORDS).
+
+5. Yale Bright Star Catalogue (BSC5)  [SHIP data — optional fixed-star source]
+   http://tdc-www.harvard.edu/catalogs/bsc5.html
+   Status: long-standing, openly redistributed, treated as public/free.
+   Obligation: acknowledgment courteous; verify the specific mirror's notice.
+
+6. Moshier ephemeris  [SHIP — candidate engine for Sun..Pluto + nodes + Lilith]
+   http://www.moshier.net/   (Steve Moshier's astronomical code)
+   Status: PUBLIC DOMAIN. (Same model swisseph uses in its data-file-free mode.)
+   Obligation: none. Attribution courteous.
+
+7. pandas  [SHIP — Skyfield dependency for Hipparcos loading]
+   https://pandas.pydata.org/   License: BSD-3-Clause.
+   Obligation: retain BSD notice.
+
+8. IANA Time Zone Database (via tzdata / stdlib zoneinfo)  [SHIP]
+   https://www.iana.org/time-zones
+   Status: public domain. Obligation: none. Powers DST / historical / LMT offsets.
+
+9. timezonefinder  [SHIP]
+   https://github.com/jannikmi/timezonefinder   (code: MIT)
+   Bundled timezone-boundary polygons derived from OpenStreetMap -> ODbL
+   (share-alike on the DATA). Obligation: attribute "(c) OpenStreetMap
+   contributors (ODbL)". Code itself is MIT.
+
+10. geopy + geocoder backends  [SHIP connector; data per backend]
+   https://github.com/geopy/geopy   (code: MIT)
+   * Nominatim / OpenStreetMap (default): data ODbL -> attribute "(c) OpenStreetMap
+     contributors"; USAGE POLICY: <=1 req/s, valid user_agent, no bulk/heavy use.
+   * Google Maps Geocoding (optional): commercial ToS + API key; caching/display
+     restrictions apply -- read Google's terms before production use.
+
+CAUTION (belongs conceptually in Tier 1 — a licensing TRAP):
+ *  HYG database (Hipparcos+Yale+Gliese+Gaia DR3)
+    https://codeberg.org/astronexus/hyg   License: CC-BY-SA 4.0.
+    SHARE-ALIKE. Convenient bundle, but its copyleft attaches to the data file.
+    Prefer raw Hipparcos/Yale/JPL (or frozen facts) to avoid share-alike.
+ *  Kerykeion / flatlib (astrology libs) — wrap pyswisseph -> inherit AGPL.
+    Do NOT adopt as a "permissive" shortcut. https://kerykeion.net/
+
+
+==============================================================================
+TIER 2 — GOOD TO REFERENCE, NOT NECESSARY (with caveats)
+(Authoritative-enough for understanding; not a license basis to rely on.)
+==============================================================================
+
+*  NASA — images & media usage / copyright status
+   https://www.nasa.gov/nasa-brand-center/images-and-media/
+   CAVEAT: This page governs IMAGERY, logos, and endorsement — NOT raw ephemeris
+   data. Its "commercial uses have stricter requirements" language is about
+   photos/branding/identifiable people. Use of NASA/JPL DATA does not imply NASA
+   endorsement, and ephemeris numbers are PD under 17 U.S.C. sec.105. Don't
+   over-read this page as restricting the Chiron data.
+
+*  JPL Horizons manual — SPK file production details (Tier 1 item #3's manual).
+   Reference for HOW to generate the Chiron .bsp; no license terms stated on it.
+
+*  Skyfield documentation (technical reference; obligation is just the MIT notice)
+   https://rhodesmill.org/skyfield/stars.html          (Star class, Hipparcos, ecliptic epoch)
+   https://rhodesmill.org/skyfield/positions.html
+   https://rhodesmill.org/skyfield/kepler-orbits.html  (minor-planet via MPC elements)
+   https://rhodesmill.org/skyfield/api-ephemeris.html  (SPK/.bsp loading)
+   https://rhodesmill.org/skyfield/planets.html
+
+*  Minor Planet Center — MPCORB.DAT / CometEls.txt (alt. Chiron/asteroid source)
+   CAVEAT: licensing historically murkier than JPL. Prefer JPL SPK kernels.
+
+*  Wikipedia — background only, NOT a licensing authority
+   https://en.wikipedia.org/wiki/2060_Chiron
+   https://en.wikipedia.org/wiki/Bright_Star_Catalogue
+   https://en.wikipedia.org/wiki/JPL_Horizons_On-Line_Ephemeris_System
+   https://en.wikipedia.org/wiki/JPL_Small-Body_Database
+   CAVEAT: fine for orbital facts / HIP numbers; do not cite as legal basis.
+
+
+==============================================================================
+TIER 3 — SEARCH DETRITUS (pulled a fact here or there; nothing load-bearing)
+(Recorded for provenance; none of these should be relied on or cited.)
+==============================================================================
+
+Black Moon Lilith vs asteroid 1181 (lay confirmation of the distinction only):
+   https://darkstarastrology.com/three-liliths/           (used: 3-Lilith distinction)
+   https://astrolibrary.org/interpretations/lilith/
+   https://www.astrologyanswers.com/article/four-liliths-birth-chart/
+   https://theinnerwheel.com/black-moon-lilith-astrology-guide/
+   https://www.augurine.com/learn/lilith
+   https://lilithcalculator.com/blog/what-is-black-moon-lilith/
+   https://blessedbemagick.com/blogs/news/lilith-is-in-our-astrological-lives
+   https://kerykeion.net/content/learn-astrology/foundation-lilith-variants
+   https://www.tumblr.com/lunarticxenia/664273304460410880/
+   https://jp.tradingview.com/script/U2ZIpSzu-Financial-Astrology-Mean-Lilith-Black-Moon-Longitude
+
+Star-catalog / misc results that surfaced but weren't used substantively:
+   https://www.astronexus.com/projects/hyg
+   https://www.projectrho.com/public_html/starmaps/catalogues.php
+   https://ian.macky.net/pat/yalebsc/index.html
+   https://grokipedia.com/page/Bright_Star_Catalogue
+   https://svs.gsfc.nasa.gov/4851                          (Deep Star Maps 2020)
+   https://www.researchgate.net/publication/361786663_USNO_Bright_Star_Catalog_Version_1
+   https://en.wikipedia.org/wiki/Hipparchus_star_catalog   (the ANCIENT catalog — irrelevant)
+   https://en.wikipedia.org/wiki/57424_Caelumnoctu
+   https://planetmapper.readthedocs.io/en/stable/spice_kernels.html
+   https://mycoding.uk/a/ephemerides.html
+   https://www.wikidata.org/wiki/Q15611                    (2060 Chiron wikidata)
+   https://catalog.data.gov/dataset/horizons
+   https://github.com/skyfielders/python-skyfield/discussions/1034
+
+
+==============================================================================
+ATTRIBUTION SNIPPET TO SHIP (if/when a permissive engine goes live)
+Put in a THIRD-PARTY-NOTICES / CREDITS file:
+------------------------------------------------------------------------------
+  This product computes astronomical positions using Skyfield (MIT License,
+  (c) Brandon Rhodes) and pandas (BSD). Planetary positions use the
+  public-domain Moshier ephemeris. Minor-body (e.g. Chiron) positions derive
+  from JPL Horizons / NASA-JPL data (public domain). Fixed-star astrometry
+  derives from the ESA Hipparcos catalogue. This product is not endorsed by
+  or affiliated with NASA, JPL, or ESA.
+  [If pyswisseph is EVER linked in: add AGPL source offer OR cite the
+   Astrodienst Professional License number.]
+==============================================================================

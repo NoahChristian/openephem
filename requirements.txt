@@ -1,0 +1,23 @@
+# --- Oracle generation ONLY — never ship this in the product ---
+# pyswisseph is AGPL; used here purely to emit reference numbers
+# (astronomical facts), which are safe to commit as fixtures.
+pyswisseph>=2.10.3.2
+
+# --- Production-candidate engines — MIT, SAFE TO SHIP ---
+# Skyfield computes the permissive replacement: planets (planets_skyfield.py),
+# asteroids via JPL SPK (asteroids_skyfield.py), and fixed stars (fixed_stars.py).
+# Also required by run_parity.py. Pulls numpy + jplephem + sgp4 transitively.
+skyfield>=1.49
+pandas>=1.5        # Skyfield uses pandas to load the Hipparcos catalog
+#
+# Data files (NOT pip-installable — public domain, fetch/generate once, offline):
+#   * de440.bsp  (~114 MB) — JPL DE440, Skyfield auto-downloads or place locally.
+#   * kernels/chiron.bsp, ceres.bsp, pallas.bsp, juno.bsp, vesta.bsp
+#       — generate each from JPL Horizons (Ephemeris Type: SPK File). See
+#         asteroids_skyfield.py header for exact steps.
+
+# --- Time + geocoding layer (timeplace.py) — permissive ---
+tzdata>=2024.1        # IANA tz database for zoneinfo on Windows (public domain)
+timezonefinder>=6.5   # offline lat/lon -> IANA zone (MIT code; OSM/ODbL data, attribute)
+geopy>=2.4            # geocoder connector (MIT); Nominatim default, Google optional
+# Nominatim policy: <=1 req/s + real user_agent. Google needs an API key + ToS.
