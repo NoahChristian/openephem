@@ -91,7 +91,7 @@ class Candidate:
 
     def _try_stars(self, de440):
         try:
-            import fixed_stars as fs
+            from openephem import fixed_stars as fs
             return fs.SkyfieldFixedStarEngine(ephemeris_path=de440), {s.common_name: s
                                                                        for s in fs.NAMED_STARS}
         except Exception as exc:  # noqa: BLE001
@@ -111,12 +111,12 @@ class Candidate:
 
 
 def _planets(de440):
-    import planets_skyfield as p
+    from openephem import planets_skyfield as p
     return p.SkyfieldPlanetEngine(ephemeris_path=de440)
 
 
 def _asteroids(de440, kernel_dir):
-    import asteroids_skyfield as a
+    from openephem import asteroids_skyfield as a
     return a.SkyfieldAsteroidEngine(planets_ephemeris=de440, kernel_dir=kernel_dir)
 
 
@@ -208,7 +208,7 @@ def run(args):
     if os.path.exists(oracle_path):
         geo = oracle.get("meta", {}).get("geo")
         try:
-            import houses as H
+            from openephem import houses as H
         except Exception as exc:  # noqa: BLE001
             H = None
             skipped.setdefault("houses", f"houses module unavailable: {exc}")

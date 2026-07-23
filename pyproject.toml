@@ -1,0 +1,52 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "openephem"
+version = "0.1.0"
+description = "Permissive, Swiss-Ephemeris-validated ephemeris & chart engine (tropical & sidereal)"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [
+    { name = "Elizabeth Huston" },
+    { name = "Noah Christian" },
+]
+keywords = [
+    "astrology", "ephemeris", "astronomy", "swiss ephemeris",
+    "sidereal", "vedic", "houses", "nakshatra", "skyfield",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Scientific/Engineering :: Astronomy",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+]
+# Core = planets + fixed stars (Skyfield/DE) and the pure-stdlib chart math
+# (houses, aspects, vedic, wheel). Asteroids and geocoding are optional extras.
+dependencies = [
+    "skyfield>=1.49",
+    "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+asteroids = ["spiceypy>=6.0"]                                  # Chiron/Ceres/... (Horizons SPK type 21)
+geo = ["timezonefinder>=6.5", "geopy>=2.4", "tzdata"]          # place -> lat/lon -> tz
+full = ["spiceypy>=6.0", "timezonefinder>=6.5", "geopy>=2.4", "tzdata", "pandas>=1.5"]
+
+[project.scripts]
+openephem-serve = "openephem.service:main"
+openephem-fetch-kernels = "openephem.fetch_kernels:main"
+
+[project.urls]
+Repository = "https://github.com/NoahChristian/ElpisWeb"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/openephem"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/openephem", "README.md", "LICENSE", "references.txt", "validation"]

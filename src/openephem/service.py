@@ -34,9 +34,9 @@ import argparse
 import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-import timeplace as tp
-import chart as chartmod
-import wheel as wheelmod
+from . import timeplace as tp
+from . import chart as chartmod
+from . import wheel as wheelmod
 
 MAX_BODY = 64 * 1024
 
@@ -123,7 +123,7 @@ def create_server(host="127.0.0.1", port=8080):
     return ThreadingHTTPServer((host, port), Handler)
 
 
-if __name__ == "__main__":
+def main():
     ap = argparse.ArgumentParser(description="Natal chart HTTP API (stdlib).")
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=8080)
@@ -134,3 +134,7 @@ if __name__ == "__main__":
         srv.serve_forever()
     except KeyboardInterrupt:
         srv.shutdown()
+
+
+if __name__ == "__main__":
+    main()

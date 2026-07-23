@@ -40,7 +40,7 @@ HORIZONS_API = "https://ssd.jpl.nasa.gov/api/horizons.api"
 def _import_table():
     """Pull the body list from asteroids_skyfield so the two stay in sync."""
     try:
-        import asteroids_skyfield as a
+        from . import asteroids_skyfield as a
         return [(x.name, x.number, x.kernel) for x in a.ASTEROID_TABLE]
     except Exception:  # noqa: BLE001 — fall back to a static copy
         return [("Chiron", 2060, "chiron.bsp"), ("Ceres", 1, "ceres.bsp"),
@@ -112,5 +112,9 @@ def parse_args(argv=None):
     return p.parse_args(argv)
 
 
-if __name__ == "__main__":
+def main():
     sys.exit(run(parse_args()))
+
+
+if __name__ == "__main__":
+    main()

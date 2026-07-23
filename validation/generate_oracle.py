@@ -440,7 +440,7 @@ def run_fixed_stars(args):
     """Emit a fixed-star oracle (swisseph authority) and, when requested and
     Skyfield is installed, a permissive Skyfield parity column."""
     try:
-        import fixed_stars as fs
+        from openephem import fixed_stars as fs
     except ImportError:
         print("[fixstar] fixed_stars.py not importable; skipping", file=sys.stderr)
         return

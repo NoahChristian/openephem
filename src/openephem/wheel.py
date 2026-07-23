@@ -197,7 +197,7 @@ def _css(theme: str) -> str:
 
 
 if __name__ == "__main__":
-    import houses
+    from . import houses
     # Real analytic houses (no skyfield) + a few mock planets, to a file.
     h = houses.houses_from_jd(2448027.270833, 40.7128, -74.0060, "Placidus")
     demo = {

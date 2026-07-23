@@ -12,9 +12,9 @@ and renderer work in any environment.
 
 from __future__ import annotations
 
-import houses as _houses
-import aspects as _aspects
-import vedic as _vedic
+from . import houses as _houses
+from . import aspects as _aspects
+from . import vedic as _vedic
 
 _SIGNS = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra",
           "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]
@@ -31,8 +31,8 @@ def _unwrap(d: float) -> float:
 
 
 def _dispatch_lon(name, jd, planet_eng, asteroid_eng):
-    import planets_skyfield as P
-    import asteroids_skyfield as A
+    from . import planets_skyfield as P
+    from . import asteroids_skyfield as A
     if name in P.PLANET_KEYS or name in P.DERIVED:
         return planet_eng.ecliptic_longitude(jd, name) if planet_eng else None
     if name in A.ASTEROIDS:
@@ -51,12 +51,12 @@ def assemble(resolved, *, house_system="Placidus", bodies=None,
     # -- engines (graceful if libs/kernels/DE440 absent) --
     planet_eng = asteroid_eng = None
     try:
-        import planets_skyfield as P
+        from . import planets_skyfield as P
         planet_eng = P.SkyfieldPlanetEngine(de440)
     except Exception as exc:  # noqa: BLE001
         warnings.append(f"planet engine unavailable: {exc}")
     try:
-        import asteroids_skyfield as A
+        from . import asteroids_skyfield as A
         asteroid_eng = A.SkyfieldAsteroidEngine(de440, kernel_dir)
     except Exception as exc:  # noqa: BLE001
         warnings.append(f"asteroid engine unavailable: {exc}")
@@ -137,7 +137,7 @@ def assemble(resolved, *, house_system="Placidus", bodies=None,
 
 
 if __name__ == "__main__":
-    import timeplace as tp
+    from . import timeplace as tp
     r = tp.resolve(date=(1990, 5, 15), time=(14, 30), lat=40.7128, lon=-74.0060)
     c = assemble(r)
     print("angles:", c["angles"])
