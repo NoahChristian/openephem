@@ -113,6 +113,9 @@ Files:
 | `houses.py` | Asc/MC/Vertex/EP + Whole Sign/Equal/Porphyry/Placidus | built + **run-tested** (cusps monotonic, antipodal) |
 | `aspects.py` | aspect detection + orbs + applying/separating | built + **run-tested** (demo correct) |
 | `timeplace.py` | local date/time/place -> JD(UT): tz/DST/LMT + calendar + geocoding | built + **live-tested** (geocode->tz->JD end-to-end) |
+| `chart.py` | assemble full chart (bodies + houses + aspects) from a birth moment | built + **run-tested** (graceful degrade) |
+| `wheel.py` | self-contained SVG chart wheel (zero deps) | built + **run-tested** (valid SVG, no NaN) |
+| `service.py` | stdlib HTTP API: `/chart`, `/chart.svg`, `/health` | built + **run-tested** (live endpoints) |
 
 End-to-end workflow:
 
@@ -130,6 +133,20 @@ python generate_oracle.py --authority jpleph --jpl-file de440.bsp \
 # 2+3. validate the permissive engines against the oracle (exits nonzero on failure)
 python run_parity.py --fixtures ./fixtures --de440 de440.bsp --kernel-dir ./kernels
 ```
+
+## Chart API (chart.py / wheel.py / service.py)
+
+```bash
+python service.py --port 8080          # zero-dependency stdlib HTTP service
+```
+`POST /chart` returns chart JSON + embedded SVG; `POST /chart.svg` returns the
+image; `GET /health` for liveness. Request body:
+```json
+{"date":[1990,5,15],"time":[14,30],"place":"New York, NY, USA","house_system":"Placidus"}
+```
+Bodies need skyfield + DE440 (+ kernels); without them the chart still returns
+houses / angles / aspects + warnings. Run it behind the web server and add auth
+there — the service does none itself.
 
 ## Known-deferred (the honest gaps)
 
@@ -153,6 +170,8 @@ python run_parity.py --fixtures ./fixtures --de440 de440.bsp --kernel-dir ./kern
 3. ~~Time/timezone/DST/LMT + calendar (Julian pre-1582) + geocoding~~ — **done**
    (`timeplace.py`, live-tested: IANA tzdata + offline `timezonefinder` +
    `geopy`/Nominatim, Google optional). Handles unknown time + DST ambiguity/gaps.
-4. **Next:** chart-wheel rendering (SVG) + the API/service packaging (a small
-   Python service the WordPress/WooCommerce site calls).
-5. Close the remaining quadrant house systems (Koch/Regio/Campanus).
+4. ~~Chart-wheel rendering (SVG) + API service~~ — **done** (`wheel.py` zero-dep
+   SVG; `service.py` stdlib HTTP API `/chart` `/chart.svg` `/health` — run-tested).
+5. **Next:** run the numeric parity table in an env with skyfield + pyswisseph +
+   DE440 (+ asteroid kernels); then WordPress/WooCommerce integration + auth.
+6. Close the remaining quadrant house systems (Koch/Regio/Campanus).

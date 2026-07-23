@@ -183,13 +183,11 @@ def run(args):
     if os.path.exists(oracle_path):
         geo = oracle.get("meta", {}).get("geo")
         try:
-            from skyfield.api import load as _sload
             import houses as H
-            _ts = _sload.timescale()
         except Exception as exc:  # noqa: BLE001
-            _ts, H = None, None
-            skipped.setdefault("houses", f"skyfield/houses unavailable: {exc}")
-        if _ts and H and geo:
+            H = None
+            skipped.setdefault("houses", f"houses module unavailable: {exc}")
+        if H and geo:
             for rec in oracle["records"]:
                 jd = rec["jd_ut"]
                 for system, hv in rec.get("houses", {}).items():
@@ -199,7 +197,7 @@ def run(args):
                         skipped.setdefault(f"house:{system}", "house system not implemented")
                         continue
                     try:
-                        c = H.angles_and_cusps_from_jd(_ts, jd, geo["lat"], geo["lon"], system)
+                        c = H.houses_from_jd(jd, geo["lat"], geo["lon"], system)
                     except Exception as exc:  # noqa: BLE001
                         skipped.setdefault(f"house:{system}", f"candidate error: {exc}")
                         continue

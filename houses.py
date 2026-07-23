@@ -242,14 +242,22 @@ def mean_obliquity(jd_tt: float) -> float:
     return sec / 3600.0
 
 
-def angles_and_cusps_from_jd(ts, jd_ut: float, lat_deg: float, lon_deg: float,
-                             system: str = "Placidus") -> Houses:
-    """Convenience: derive ARMC (from apparent sidereal time) and obliquity from a
-    JD using a Skyfield timescale `ts`, then compute houses. Matches the inputs
-    swisseph's swe_houses uses, so run_parity can compare cusp-for-cusp."""
-    t = ts.ut1(jd=jd_ut)
-    armc = (t.gast * 15.0 + lon_deg) % 360.0     # gast in hours -> deg, +east lon
-    eps = mean_obliquity(t.tt)
+def gmst_deg(jd_ut: float) -> float:
+    """Greenwich Mean Sidereal Time in degrees (IAU 1982) — analytic, no ephemeris."""
+    T = (jd_ut - 2451545.0) / 36525.0
+    g = (280.46061837 + 360.98564736629 * (jd_ut - 2451545.0)
+         + 0.000387933 * T * T - T * T * T / 38710000.0)
+    return g % 360.0
+
+
+def houses_from_jd(jd_ut: float, lat_deg: float, lon_deg: float,
+                   system: str = "Placidus") -> Houses:
+    """Houses from JD(UT) + geographic lat/lon — fully standalone (no Skyfield).
+    ARMC uses mean sidereal time and obliquity is mean-of-date; both omit nutation
+    (equation-of-equinoxes + nutation-in-obliquity < ~20\", below cusp resolution).
+    run_parity.py quantifies the residual against swisseph's apparent values."""
+    armc = (gmst_deg(jd_ut) + lon_deg) % 360.0
+    eps = mean_obliquity(jd_ut)   # jd_ut ~ jd_tt for obliquity (dT effect < 0.01")
     return compute(armc, eps, lat_deg, system)
 
 
