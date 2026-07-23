@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import houses as _houses
 import aspects as _aspects
+import vedic as _vedic
 
 _SIGNS = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra",
           "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]
@@ -41,7 +42,8 @@ def _dispatch_lon(name, jd, planet_eng, asteroid_eng):
 
 def assemble(resolved, *, house_system="Placidus", bodies=None,
              de440="de440.bsp", kernel_dir="./kernels",
-             include_minor_aspects=False) -> dict:
+             include_minor_aspects=False,
+             zodiac="tropical", ayanamsa="lahiri") -> dict:
     bodies = bodies or DEFAULT_BODIES
     warnings = list(resolved.warnings)
     jd, lat, lon = resolved.jd_ut, resolved.lat, resolved.lon
@@ -98,11 +100,12 @@ def assemble(resolved, *, house_system="Placidus", bodies=None,
              for n, p in positions.items()}
     asp = _aspects.find_aspects(abody, include_minor=include_minor_aspects)
 
-    return {
+    result = {
         "jd_ut": jd,
         "utc": resolved.utc_iso,
         "lat": lat, "lon": lon, "tz": resolved.tz,
         "offset_hours": resolved.offset_hours,
+        "zodiac": "tropical",
         "house_system": house_system if angles else None,
         "angles": angles,
         "cusps": cusps,
@@ -111,6 +114,26 @@ def assemble(resolved, *, house_system="Placidus", bodies=None,
                      "orb": round(a.orb, 3), "applying": a.applying} for a in asp],
         "warnings": warnings,
     }
+
+    # Sidereal (Vedic): shift every longitude by the ayanamsa. Aspects are
+    # separation-based, hence invariant, so they carry over unchanged.
+    if zodiac == "sidereal":
+        ay = _vedic.ayanamsa(jd, ayanamsa)
+        result["zodiac"] = "sidereal"
+        result["ayanamsa"] = {"system": ayanamsa, "value": round(ay, 6)}
+        for b in positions.values():
+            sl = (b["lon"] - ay) % 360.0
+            b["lon"] = sl
+            b["sign"] = _vedic.rashi(sl)
+            b["deg_in_sign"] = round(sl % 30.0, 3)
+            ni, nn, pada = _vedic.nakshatra(sl)
+            b["nakshatra"] = {"index": ni, "name": nn, "pada": pada}
+        if angles:
+            result["angles"] = {k: (v - ay) % 360.0 for k, v in angles.items()}
+        if cusps:
+            result["cusps"] = [(c - ay) % 360.0 for c in cusps]
+
+    return result
 
 
 if __name__ == "__main__":

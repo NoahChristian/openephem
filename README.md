@@ -112,6 +112,7 @@ Files:
 | `run_parity.py` | validate all engines (planets/asteroids/stars/houses) vs oracle; CI gate | built; control-flow smoke-tested |
 | `houses.py` | Asc/MC/Vertex/EP + Placidus/Koch/Regiomontanus/Campanus/WholeSign/Equal/Porphyry | **all parity-validated vs swisseph** (< 20" over 0-2500) |
 | `aspects.py` | aspect detection + orbs + applying/separating | built + **run-tested** (demo correct) |
+| `vedic.py` | sidereal zodiac (Lahiri/Fagan-Bradley/KP/Raman) + nakshatras/rashis | built + **validated** (< 16" vs swisseph, sub-arcsec modern) |
 | `timeplace.py` | local date/time/place -> JD(UT): tz/DST/LMT + calendar + geocoding | built + **live-tested** (geocode->tz->JD end-to-end) |
 | `chart.py` | assemble full chart (bodies + houses + aspects) from a birth moment | built + **run-tested** (graceful degrade) |
 | `wheel.py` | self-contained SVG chart wheel (zero deps) | built + **run-tested** (valid SVG, no NaN) |
@@ -225,5 +226,7 @@ AGPL code was read or copied; only the (non-copyrightable) math.
    bodies/houses/stars match swisseph (asteroids fixed via spiceypy, MeanLilith
    via the periodic correction).
 6. ~~Koch / Regiomontanus / Campanus house systems~~ — **done** (all validated < 1e-6° vs swisseph).
-7. Vedic / sidereal (ayanamsa) — in progress.
+7. ~~Vedic / sidereal (ayanamsa)~~ — **done** (`vedic.py`: Lahiri/Fagan-Bradley/
+   Krishnamurti/Raman ayanamsas + nakshatras/padas/rashis; `chart.py`
+   `zodiac="sidereal"`, and the `zodiac`/`ayanamsa` API params).
 8. **Next:** WordPress/WooCommerce integration + auth in front of the service.

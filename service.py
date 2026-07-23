@@ -62,6 +62,8 @@ def build_chart(req: dict) -> dict:
         de440=req.get("de440", "de440.bsp"),
         kernel_dir=req.get("kernel_dir", "./kernels"),
         include_minor_aspects=bool(req.get("include_minor_aspects", False)),
+        zodiac=req.get("zodiac", "tropical"),
+        ayanamsa=req.get("ayanamsa", "lahiri"),
     )
 
 
