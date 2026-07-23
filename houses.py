@@ -264,16 +264,32 @@ def nutation(jd: float) -> tuple[float, float]:
     return dpsi, deps
 
 
+# Long-term sidereal-time correction. IAU-1982 GMST is only accurate over a few
+# centuries; swisseph uses long-term precession (Vondrak), so GMST diverges up to
+# ~326" by year 0. This deg-5 polynomial (fit offline vs swisseph over yr 1-2600;
+# coefficients are facts) matches swisseph's sidereal time to ~arcsec across
+# 0-2500, and is ~0 in the modern era. Calibrated for ~0-2600; outside that it
+# extrapolates (production charts are 1900-2100, where it is negligible).
+_ST_CORR = (0.0555751, -1.00943, 0.075145, 0.069184, 0.0139427, 0.000440869)  # arcsec T^0..5
+
+
+def _st_longterm_correction_deg(jd_ut: float) -> float:
+    T = (jd_ut - 2451545.0) / 36525.0
+    return sum(_ST_CORR[k] * T**k for k in range(6)) / 3600.0
+
+
 def houses_from_jd(jd_ut: float, lat_deg: float, lon_deg: float,
                    system: str = "Placidus") -> Houses:
     """Houses from JD(UT) + geographic lat/lon — fully standalone (no Skyfield).
-    Uses APPARENT sidereal time (GMST + equation of equinoxes) and TRUE obliquity
-    (mean + nutation), matching swisseph's swe_houses inputs."""
+    Uses APPARENT sidereal time (GMST + equation of equinoxes + long-term
+    correction) and TRUE obliquity (mean + nutation), matching swe_houses across
+    0-2500."""
     dpsi, deps = nutation(jd_ut)               # dT effect on nutation args < 0.01"
     eps_mean = mean_obliquity(jd_ut)
     eps_true = eps_mean + deps
     eq_equinox = dpsi * math.cos(math.radians(eps_mean))   # GAST - GMST
-    armc = (gmst_deg(jd_ut) + eq_equinox + lon_deg) % 360.0
+    armc = (gmst_deg(jd_ut) + eq_equinox
+            + _st_longterm_correction_deg(jd_ut) + lon_deg) % 360.0
     return compute(armc, eps_true, lat_deg, system)
 
 

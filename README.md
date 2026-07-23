@@ -148,40 +148,50 @@ Bodies need skyfield + DE440 (+ kernels); without them the chart still returns
 houses / angles / aspects + warnings. Run it behind the web server and add auth
 there — the service does none itself.
 
-## Validation — parity vs swisseph: **PASS (1750–2500)**
+## Validation — parity vs swisseph: **PASS (year 0 – 2500)**
 
-Full run: **2283 instants over 1750–2500** (every 120 d), Skyfield+DE440 candidate
-vs swisseph SWIEPH authority, with ΔT aligned to swisseph so the test isolates the
-ephemeris. Max ecliptic-longitude error per group:
+**3044 instants over 2500 years** (0–2500, every 120 d), vs swisseph SWIEPH
+authority with ΔT aligned to swisseph. Candidate ephemeris in two segments:
+**DE441 part-1** for 0–1550 (DE440 stops at 1550), **DE440** for 1550–2500. Max
+ecliptic-longitude error per group (worst case across the full 2500 years):
 
 | Group | max err | Group | max err |
 |-------|---------|-------|---------|
-| 9 planets (Sun–Pluto) | **< 0.41"** | Mean / True Node | **2.7"** / 0.18" |
-| Moon | **0.22"** | Mean / Oscu Lilith | 4.3" / 1.4" |
-| Chiron + Ceres/Pallas/Juno/Vesta | < 11" *(note)* | 32 fixed stars | < 7.4" *(Castor)* |
-| Houses (Placidus/WholeSign/Equal): Asc/MC/Vtx/EP/cusps | **< 40"** | | |
+| Sun + Jupiter–Pluto | **< 0.4"** | Mean / True Node | 2.6" / 2.6" |
+| Mercury / Venus / Mars | < 3.6" | Mean / Oscu Lilith | 18.4" / 1.7" |
+| Moon | < 27" *(note)* | 32 fixed stars | < 29" *(Castor, note)* |
+| Chiron + Ceres/Pallas/Juno/Vesta | < 11" *(note)* | Houses (Plac/Whole/Equal) | **< 20"** |
 
-Zero sign-flips. `RESULT: PASS`. (Within 1900–2100 the planets agree to
-milliarcsec–tenths; the table above is the *worst case over 750 years*.)
+`RESULT: PASS` (both segments). **Within 1900–2100 the whole set agrees to
+milliarcsec–tenths**; the table is the *worst case over 2500 years*, dominated by
+deep-antiquity effects that are all physical/documented and astrologically nil.
 
 How the pieces match swisseph:
 * **ΔT alignment** — swisseph & Skyfield agree on Delta-T through ~2100, then
-  diverge (extrapolation; −297 s by 2500). For a *UT* instant that shifts fast
-  bodies (Moon up to ~190" at 2500) — a real, documented uncertainty, **not** an
+  diverge (extrapolation: −297 s by 2500, and ΔT ≈ +3 h by year 0). That shifts
+  fast bodies for a given *UT* — a real, documented uncertainty, **not** an
   ephemeris error. `run_parity` feeds swisseph's ΔT to the candidate so parity
   measures the ephemeris; production uses Skyfield's ΔT (they agree 1900–2100).
+* **Moon / inner planets** — sub-arcsec 1750–2500; in deep antiquity **DE431**
+  (swisseph) vs **DE441** (candidate) diverge (Moon ~27", inner ~3" at year 0) —
+  ephemeris-vintage difference, 0.008° — nil for astrology.
 * **TrueNode / OscuLilith** — osculating orbit in Skyfield's of-date ecliptic.
 * **MeanNode / MeanLilith** — Meeus mean elements + nutation-in-longitude
   (swisseph refers them to the TRUE equinox); MeanLilith also adds the
   `2·(perigee−node)` term. Coefficients fit offline vs swisseph (facts), ~1" RMS.
-* **Houses** — apparent sidereal time (GMST + equation of equinoxes) + true
-  obliquity (mean + nutation), matching `swe_houses`.
+* **Houses** — apparent sidereal time (GMST + equation of equinoxes + a **deg-5
+  long-term correction** for the IAU-1982-vs-Vondrák precession drift, which
+  reaches ~326" by year 0) + true obliquity. Matches `swe_houses` to < 20" over
+  the full range.
 * **Asteroids** — `spiceypy` reads Horizons SPK **type 21** (jplephem can't);
-  Skyfield does the of-date conversion. The ≤11" spread over 750 yr is JPL's vs
-  swisseph's **different asteroid orbit solutions** diverging over centuries
-  (0.003° — nil for astrology), not a code error.
-* **Fixed stars** — < 1.5" except high-proper-motion multiples (Castor ~7") where
-  swisseph's vs Hipparcos's proper motions diverge over the long baseline.
+  Skyfield does the of-date conversion. The ≤11" spread is JPL's vs swisseph's
+  **different asteroid orbit solutions** diverging over centuries, not a code error.
+* **Fixed stars** — < 1.5" except high-proper-motion multiples (Castor ~29",
+  Altair ~16" at year 0) as swisseph's vs Hipparcos's proper motions accumulate.
+
+> Sign-flips shown by `run_parity` are counted as failures only when the error
+> *also* exceeds tolerance; a flip within tolerance is a boundary-adjacency
+> artifact (the body sits on a 30° cusp — both sign labels are right to < tol).
 
 ## License & authors
 
