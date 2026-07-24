@@ -160,4 +160,5 @@ optional offline validation tools.
 
 ## Authors
 
-© 2026 **Elizabeth Huston, Ph.D.** and **Noah Christian, Ph.D.**
+© 2026 **Elizabeth Huston, Ph.D.** and **Noah Christian, Ph.D.**  
+Contact: elpisastrology@gmail.com · elpisastrology.com and noahchristian@gmail.com
