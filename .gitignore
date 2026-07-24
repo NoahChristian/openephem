@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Generated / large data (regenerate; do not commit)
+fixtures/
+kernels/
+*.bsp
+de4*.bsp
+
+# Swiss Ephemeris data (AGPL — must NOT be redistributed)
+*.se1
+ephe/
+sefstars.txt
+
+# Skyfield / astronomy data auto-downloaded at runtime
+*.dat
+*.npz
+hip_main.dat
+deltat.*
+Leap_Second.dat
+finals2000A.*
+
+# Secrets / local env / OS cruft
+.env
+*.local
+.DS_Store
+Thumbs.db

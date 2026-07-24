@@ -45,7 +45,10 @@ openephem-serve = "openephem.service:main"
 openephem-fetch-kernels = "openephem.fetch_kernels:main"
 
 [project.urls]
-Repository = "https://github.com/NoahChristian/ElpisWeb"
+Homepage = "https://github.com/NoahChristian/openephem"
+Repository = "https://github.com/NoahChristian/openephem"
+Changelog = "https://github.com/NoahChristian/openephem/blob/main/CHANGELOG.md"
+Issues = "https://github.com/NoahChristian/openephem/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/openephem"]
