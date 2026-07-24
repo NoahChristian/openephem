@@ -36,9 +36,19 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from . import timeplace as tp
 from . import chart as chartmod
-from . import wheel as wheelmod
 
 MAX_BODY = 64 * 1024
+
+
+def _render_svg(chart, theme, title):
+    """SVG rendering lives in the ephemvis package (optional). Imported lazily so
+    openephem stays a pure calculation core with no rendering dependency."""
+    try:
+        from ephemvis import render_svg
+    except ImportError as exc:  # pragma: no cover
+        raise RuntimeError("SVG rendering requires the 'ephemvis' package "
+                           "(pip install ephemvis)") from exc
+    return render_svg(chart, theme=theme, title=title)
 
 
 def build_chart(req: dict) -> dict:
@@ -104,14 +114,18 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(400, {"error": str(exc)})
 
         if path == "/chart.svg":
-            svg = wheelmod.render_svg(chart, theme=req.get("theme", "auto"),
-                                      title=req.get("title"))
+            try:
+                svg = _render_svg(chart, req.get("theme", "auto"), req.get("title"))
+            except RuntimeError as exc:
+                return self._send(501, {"error": str(exc)})
             return self._send(200, svg.encode("utf-8"), ctype="image/svg+xml")
         if path == "/chart":
             out = dict(chart)
-            if req.get("svg", True):
-                out["svg"] = wheelmod.render_svg(chart, theme=req.get("theme", "auto"),
-                                                 title=req.get("title"))
+            if req.get("svg", False):   # rendering is optional; requires ephemvis
+                try:
+                    out["svg"] = _render_svg(chart, req.get("theme", "auto"), req.get("title"))
+                except RuntimeError as exc:
+                    out["svg_error"] = str(exc)
             return self._send(200, out)
         return self._send(404, {"error": "not found"})
 

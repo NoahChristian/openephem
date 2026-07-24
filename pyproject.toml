@@ -27,7 +27,8 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 # Core = planets + fixed stars (Skyfield/DE) and the pure-stdlib chart math
-# (houses, aspects, vedic, wheel). Asteroids and geocoding are optional extras.
+# (houses, aspects, vedic). SVG rendering is the separate `ephemvis` package.
+# Asteroids and geocoding are optional extras.
 dependencies = [
     "skyfield>=1.49",
     "numpy>=1.24",

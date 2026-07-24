@@ -23,6 +23,7 @@ DEFAULT_BODIES = [
     "Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn",
     "Uranus", "Neptune", "Pluto", "TrueNode", "MeanLilith",
     "Chiron", "Ceres", "Pallas", "Juno", "Vesta",
+    "Eros", "Eris", "AsteroidLilith",
 ]
 
 
@@ -30,23 +31,55 @@ def _unwrap(d: float) -> float:
     return (d + 540.0) % 360.0 - 180.0
 
 
-def _dispatch_lon(name, jd, planet_eng, asteroid_eng):
-    from . import planets_skyfield as P
-    from . import asteroids_skyfield as A
-    if name in P.PLANET_KEYS or name in P.DERIVED:
+def _house_of(lon: float, cusps) -> int:
+    for i in range(12):
+        span = (cusps[(i + 1) % 12] - cusps[i]) % 360.0
+        if span == 0.0 or (lon - cusps[i]) % 360.0 < span:
+            return i + 1
+    return 12
+
+
+def _dispatch_lon(name, jd, planet_eng, asteroid_eng, hypo_eng=None):
+    """Ecliptic longitude of an *ephemeris* body (planet/asteroid/hypothetical)."""
+    from . import bodies as _B
+    b = _B.get(name)
+    eng = b.engine if b else None
+    if eng == "planet":
         return planet_eng.ecliptic_longitude(jd, name) if planet_eng else None
-    if name in A.ASTEROIDS:
+    if eng == "asteroid":
         return asteroid_eng.ecliptic_longitude(jd, name) if asteroid_eng else None
-    raise KeyError(f"unknown body: {name}")
+    if eng == "hypothetical":
+        return hypo_eng.ecliptic_longitude(jd, name) if hypo_eng else None
+    raise KeyError(f"not an ephemeris body: {name}")
 
 
 def assemble(resolved, *, house_system="Placidus", bodies=None,
              de440="de440.bsp", kernel_dir="./kernels",
-             include_minor_aspects=False,
+             include_minor_aspects=False, star_orb=1.0,
              zodiac="tropical", ayanamsa="lahiri") -> dict:
+    from . import bodies as _B
     bodies = bodies or DEFAULT_BODIES
     warnings = list(resolved.warnings)
     jd, lat, lon = resolved.jd_ut, resolved.lat, resolved.lon
+
+    # validate & split the requested bodies by how each is computed
+    eph_bodies, point_bodies, lot_bodies, star_bodies = [], [], [], []
+    for _name in bodies:
+        _b = _B.get(_name)
+        if _b is None:
+            warnings.append(f"unknown body {_name!r} (see openephem.bodies.available_bodies())")
+        elif not _b.implemented:
+            warnings.append(f"{_name}: registered but not computed yet ({_b.note})")
+        elif _b.engine in ("planet", "asteroid", "hypothetical"):
+            eph_bodies.append(_b.name)
+        elif _b.engine == "point":
+            point_bodies.append(_b.name)
+        elif _b.engine == "lot":
+            lot_bodies.append(_b.name)
+        elif _b.engine == "fixedstar":
+            star_bodies.append(_b.name)
+        else:
+            warnings.append(f"{_name}: engine {_b.engine!r} not wired yet")
 
     # -- engines (graceful if libs/kernels/DE440 absent) --
     planet_eng = asteroid_eng = None
@@ -60,16 +93,30 @@ def assemble(resolved, *, house_system="Placidus", bodies=None,
         asteroid_eng = A.SkyfieldAsteroidEngine(de440, kernel_dir)
     except Exception as exc:  # noqa: BLE001
         warnings.append(f"asteroid engine unavailable: {exc}")
+    hypo_eng = None
+    if any(_B.get(n) and _B.get(n).engine == "hypothetical" for n in eph_bodies):
+        try:
+            from . import hypothetical as H
+            hypo_eng = H.HypotheticalEngine(de440)
+        except Exception as exc:  # noqa: BLE001
+            warnings.append(f"hypothetical engine unavailable: {exc}")
+    star_eng = None
+    if star_bodies:  # only load the Hipparcos catalogue if a star was requested
+        try:
+            from . import fixed_stars as _FS
+            star_eng = _FS.SkyfieldFixedStarEngine(de440)
+        except Exception as exc:  # noqa: BLE001
+            warnings.append(f"fixed-star engine unavailable: {exc}")
 
     # -- bodies (longitude + speed via central difference -> retrograde flag) --
     positions: dict[str, dict] = {}
-    for name in bodies:
+    for name in eph_bodies:
         try:
-            l0 = _dispatch_lon(name, jd, planet_eng, asteroid_eng)
+            l0 = _dispatch_lon(name, jd, planet_eng, asteroid_eng, hypo_eng)
             if l0 is None:
                 continue
-            lp = _dispatch_lon(name, jd + 0.5, planet_eng, asteroid_eng)
-            lm = _dispatch_lon(name, jd - 0.5, planet_eng, asteroid_eng)
+            lp = _dispatch_lon(name, jd + 0.5, planet_eng, asteroid_eng, hypo_eng)
+            lm = _dispatch_lon(name, jd - 0.5, planet_eng, asteroid_eng, hypo_eng)
             speed = _unwrap(lp - lm) if (lp is not None and lm is not None) else None
             l0 %= 360.0
             positions[name] = {
@@ -88,7 +135,7 @@ def assemble(resolved, *, house_system="Placidus", bodies=None,
         try:
             h = _houses.houses_from_jd(jd, lat, lon, house_system)
             angles = {"asc": h.asc, "mc": h.mc, "vertex": h.vertex,
-                      "east_point": h.east_point}
+                      "east_point": h.east_point, "coasc": h.coasc}
             cusps = h.cusps
         except Exception as exc:  # noqa: BLE001
             warnings.append(f"houses ({house_system}): {exc}")
@@ -99,6 +146,82 @@ def assemble(resolved, *, house_system="Placidus", bodies=None,
     abody = {n: ({"lon": p["lon"]} | ({"speed": p["speed"]} if p["speed"] is not None else {}))
              for n, p in positions.items()}
     asp = _aspects.find_aspects(abody, include_minor=include_minor_aspects)
+
+    # -- chart points & lots (added AFTER aspects: shown as bodies, not aspected) --
+    def _store(nm, lonv):
+        lonv %= 360.0
+        positions[nm] = {"lon": lonv, "speed": None, "retro": False,
+                         "sign": _SIGNS[int(lonv // 30)], "deg_in_sign": round(lonv % 30.0, 3)}
+
+    for name in point_bodies:
+        lonv = None
+        if angles and name == "Ascendant":
+            lonv = angles["asc"]
+        elif angles and name == "Midheaven":
+            lonv = angles["mc"]
+        elif angles and name == "Vertex":
+            lonv = angles.get("vertex")
+        elif angles and name == "EastPoint":
+            lonv = angles.get("east_point")
+        elif angles and name == "CoAscendant":
+            lonv = angles.get("coasc")
+        elif angles and name == "Descendant":
+            lonv = angles["asc"] + 180.0
+        elif angles and name == "ImumCoeli":
+            lonv = angles["mc"] + 180.0
+        elif name == "AriesPoint":
+            lonv = 0.0
+        elif name == "LibraPoint":
+            lonv = 180.0
+        elif name == "SouthNode":
+            base = (positions.get("TrueNode") or positions.get("MeanNode") or {}).get("lon")
+            if base is None and planet_eng:
+                try:
+                    base = planet_eng.ecliptic_longitude(jd, "TrueNode")
+                except Exception:  # noqa: BLE001
+                    base = None
+            lonv = None if base is None else base + 180.0
+        if lonv is None:
+            warnings.append(f"{name}: unavailable (needs a known birth time)")
+        else:
+            _store(name, lonv)
+
+    for name in lot_bodies:
+        if name == "PartOfFortune":
+            if not (angles and cusps and "Sun" in positions and "Moon" in positions):
+                warnings.append("PartOfFortune: needs houses + Sun + Moon selected")
+                continue
+            asc_l, sun_l = angles["asc"], positions["Sun"]["lon"]
+            moon_l = positions["Moon"]["lon"]
+            day = _house_of(sun_l, cusps) >= 7          # Sun above the horizon = diurnal
+            _store(name, (asc_l + moon_l - sun_l) if day else (asc_l + sun_l - moon_l))
+            positions[name]["sect"] = "day" if day else "night"
+
+    if star_bodies:
+        from . import fixed_stars as _FS
+        _smap = {s.common_name: s for s in _FS.NAMED_STARS}
+        for name in star_bodies:
+            entry = _smap.get(name)
+            if entry is None:
+                warnings.append(f"{name}: not in the fixed-star table")
+            elif not star_eng:
+                warnings.append(f"{name}: fixed-star engine unavailable")
+            else:
+                try:
+                    _store(name, star_eng.ecliptic_longitude(jd, entry))
+                    positions[name]["kind"] = "star"
+                except Exception as exc:  # noqa: BLE001
+                    warnings.append(f"{name}: {exc}")
+
+    # -- fixed-star conjunction pass (tight orb; stars aren't in the main aspects) --
+    star_aspects = []
+    if star_bodies:
+        _sp = {n: {"lon": positions[n]["lon"]} for n in star_bodies if n in positions}
+        _bp = {n: {"lon": positions[n]["lon"]} for n in eph_bodies if n in positions}
+        for _a in _aspects.between(_sp, _bp, orbs={"conjunction": star_orb}, luminary_bonus=0.5):
+            if _a.aspect == "conjunction":
+                star_aspects.append({"star": _a.a, "body": _a.b, "orb": round(_a.orb, 3)})
+        star_aspects.sort(key=lambda x: abs(x["orb"]))
 
     result = {
         "jd_ut": jd,
@@ -114,6 +237,8 @@ def assemble(resolved, *, house_system="Placidus", bodies=None,
                      "orb": round(a.orb, 3), "applying": a.applying} for a in asp],
         "warnings": warnings,
     }
+    if star_bodies:
+        result["star_aspects"] = star_aspects
 
     # Sidereal (Vedic): shift every longitude by the ayanamsa. Aspects are
     # separation-based, hence invariant, so they carry over unchanged.

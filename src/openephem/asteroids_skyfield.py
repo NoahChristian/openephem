@@ -43,6 +43,14 @@ ASTEROID_TABLE = [
     Asteroid("Pallas",    2, "pallas.bsp"),
     Asteroid("Juno",      3, "juno.bsp"),
     Asteroid("Vesta",     4, "vesta.bsp"),
+    Asteroid("Astraea",   5, "astraea.bsp"),
+    Asteroid("Hygeia",   10, "hygeia.bsp"),
+    Asteroid("Eros",    433, "eros.bsp"),
+    Asteroid("Eris", 136199, "eris.bsp"),
+    Asteroid("Sedna", 90377, "sedna.bsp"),
+    # 1181 Lilith — the ASTEROID, distinct from Black Moon Lilith (Mean/OscuLilith,
+    # the lunar apogee, computed analytically with no kernel).
+    Asteroid("AsteroidLilith", 1181, "lilith_ast.bsp"),
 ]
 ASTEROIDS = {a.name: a for a in ASTEROID_TABLE}
 

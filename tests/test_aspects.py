@@ -41,3 +41,29 @@ def test_applying_separating():
 def test_applying_none_without_speed():
     r = aspects.find_aspects({"A": {"lon": 0.0}, "B": {"lon": 120.0}})
     assert r[0].applying is None
+
+
+def test_between_cross_chart():
+    # personA Venus @0 vs personB Mars @90 -> square; names kept, charts recorded
+    a = {"Venus": {"lon": 0.0}}
+    b = {"Mars": {"lon": 90.0}, "Sun": {"lon": 200.0}}
+    res = aspects.between(a, b)
+    sq = [x for x in res if x.aspect == "square"]
+    assert sq and sq[0].a == "Venus" and sq[0].b == "Mars"
+    assert sq[0].chart_a == "A" and sq[0].chart_b == "B"
+    # no within-set pairs: Sun@B is only compared to Venus@A, not to Mars@B
+    assert all({x.a, x.b} != {"Mars", "Sun"} for x in res)
+
+
+def test_between_same_name_stays_distinct():
+    res = aspects.between({"Sun": {"lon": 10.0}}, {"Sun": {"lon": 190.0}}, label_a="natal", label_b="transit")
+    assert len(res) == 1 and res[0].aspect == "opposition"
+    assert res[0].chart_a == "natal" and res[0].chart_b == "transit"
+
+
+def test_derived_midpoints():
+    from openephem import derived
+    assert abs(derived.lon_midpoint(350.0, 10.0) - 0.0) < 1e-9      # wraps: near midpoint is 0
+    assert abs(derived.lon_midpoint(350.0, 10.0, far=True) - 180.0) < 1e-9
+    lat, lon = derived.geo_midpoint((0.0, 0.0), (0.0, 90.0))         # equator, 0 & 90E -> 45E
+    assert abs(lat) < 1e-6 and abs(lon - 45.0) < 1e-6

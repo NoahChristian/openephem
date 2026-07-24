@@ -45,7 +45,9 @@ def _import_table():
     except Exception:  # noqa: BLE001 — fall back to a static copy
         return [("Chiron", 2060, "chiron.bsp"), ("Ceres", 1, "ceres.bsp"),
                 ("Pallas", 2, "pallas.bsp"), ("Juno", 3, "juno.bsp"),
-                ("Vesta", 4, "vesta.bsp")]
+                ("Vesta", 4, "vesta.bsp"), ("Eros", 433, "eros.bsp"),
+                ("Eris", 136199, "eris.bsp"),
+                ("AsteroidLilith", 1181, "lilith_ast.bsp")]
 
 
 def fetch_one(number: int, start: str, stop: str, timeout: float = 120.0) -> bytes:

@@ -66,3 +66,20 @@ def test_matches_swisseph(system, code, armc, eps, phi):
     h = houses.compute(armc, eps, phi, system)
     for i in range(12):
         assert sep(h.cusps[i], cusps[i]) * 3600.0 < 1.0   # < 1 arcsec
+
+
+def test_co_ascendant_reflects_polar():
+    # Koch co-ascendant is the polar ascendant reflected 180° (offline invariant).
+    for armc, eps, phi in CASES:
+        co = houses.co_ascendant(armc, eps, phi)
+        assert 0.0 <= co < 360.0
+        assert houses.compute(armc, eps, phi, "Placidus").coasc == co
+
+
+@requires_swe
+@pytest.mark.parametrize("armc,eps,phi", CASES)
+def test_co_ascendant_matches_swisseph(armc, eps, phi):
+    import swisseph as swe
+    _, ascmc = swe.houses_armc(armc, phi, eps, b"P")     # ascmc[5] = Koch co-asc
+    assert sep(houses.co_ascendant(armc, eps, phi), ascmc[5]) * 3600.0 < 1.0
+    assert sep(ascmc[5], (ascmc[7] + 180.0) % 360.0) < 1e-6    # co-asc = polar + 180

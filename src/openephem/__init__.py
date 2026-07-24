@@ -2,29 +2,33 @@
 
 Computes tropical & sidereal charts (planets, Chiron + asteroids, fixed stars,
 houses, aspects) validated to arcseconds against Swiss Ephemeris across year
-0-2500, with SVG rendering and an HTTP API. MIT-licensed; no AGPL dependencies.
+0-2500. Pure calculation core — MIT-licensed, no AGPL dependencies. SVG chart
+rendering lives in the companion package **ephemvis** (openephem stays the math).
 
 Quick start:
-    from openephem import resolve, assemble, render_svg
+    from openephem import resolve, assemble
     moment = resolve(date=(1990, 5, 15), time=(14, 30), place="New York, NY")
     chart = assemble(moment)                 # tropical; zodiac="sidereal" for Vedic
-    svg = render_svg(chart)
+    # to draw it:  pip install ephemvis; from ephemvis import render_svg
 
-Data (DE440, asteroid kernels, Hipparcos) is fetched at runtime, not shipped.
+`assemble()` returns a plain ChartResult dict (see openephem.schema) — the data
+contract any renderer or app consumes. Data (DE440, asteroid kernels, Hipparcos)
+is fetched at runtime, not shipped.
 """
 
 __version__ = "0.1.0"
 
 from . import (                       # noqa: F401 — submodule access (openephem.houses, ...)
-    aspects, houses, vedic, timeplace, chart, wheel, service,
-    planets_skyfield, asteroids_skyfield, fixed_stars, fetch_kernels,
+    aspects, houses, vedic, timeplace, chart, service, schema, derived, returns,
+    bodies, planets_skyfield, asteroids_skyfield, hypothetical, fixed_stars, fetch_kernels,
 )
 from .chart import assemble           # noqa: F401
-from .wheel import render_svg         # noqa: F401
 from .timeplace import resolve        # noqa: F401
+from .bodies import available_bodies  # noqa: F401 — the master body list
 
 __all__ = [
-    "__version__", "assemble", "render_svg", "resolve",
-    "aspects", "houses", "vedic", "timeplace", "chart", "wheel", "service",
-    "planets_skyfield", "asteroids_skyfield", "fixed_stars", "fetch_kernels",
+    "__version__", "assemble", "resolve", "available_bodies",
+    "aspects", "houses", "vedic", "timeplace", "chart", "service", "schema",
+    "derived", "returns", "bodies", "planets_skyfield", "asteroids_skyfield",
+    "hypothetical", "fixed_stars", "fetch_kernels",
 ]

@@ -42,6 +42,8 @@ class Aspect:
     orb: float            # signed: separation - exact angle (deg)
     applying: bool | None  # None if speeds not supplied
     exact_sep: float      # actual separation (deg, 0..180)
+    chart_a: str | None = None   # source-chart label (cross-chart / synastry aspects)
+    chart_b: str | None = None
 
 
 def _sep(lon1: float, lon2: float) -> float:
@@ -78,6 +80,44 @@ def find_aspects(bodies: dict, include_minor: bool = False,
                     out.append(Aspect(a=na, b=nb, aspect=aspect, angle=angle,
                                       orb=orb, applying=applying, exact_sep=sep))
                     break  # one aspect per pair (nearest by construction of table)
+    out.sort(key=lambda x: abs(x.orb))
+    return out
+
+
+def between(bodies_a: dict, bodies_b: dict, include_minor: bool = False,
+            orbs: dict | None = None, luminary_bonus: float = LUMINARY_BONUS,
+            label_a: str = "A", label_b: str = "B") -> list[Aspect]:
+    """Cross-chart (synastry / inter-chart) aspects.
+
+    Every body in `bodies_a` against every body in `bodies_b` (no within-set
+    pairs) — synastry, transit-to-natal, progressed-to-natal, etc. Same orb rules
+    as find_aspects. Each Aspect keeps the raw names in .a/.b and records the
+    source chart in .chart_a/.chart_b, so identical names in both charts (Sun vs
+    Sun) stay distinct. Tightest-orb first.
+
+    For transit/progressed 'applying', give the moving chart real speeds and the
+    static chart speed 0 (or omit speeds for applying=None)."""
+    table = dict(MAJOR)
+    if include_minor:
+        table.update(MINOR)
+    if orbs:
+        for k, v in orbs.items():
+            if k in table:
+                table[k] = (table[k][0], float(v))
+    out: list[Aspect] = []
+    for na, ba in bodies_a.items():
+        la = ba["lon"]
+        for nb, bb in bodies_b.items():
+            lb = bb["lon"]
+            sep = _sep(la, lb)
+            bonus = luminary_bonus if (na in LUMINARIES or nb in LUMINARIES) else 0.0
+            for aspect, (angle, base_orb) in table.items():
+                orb = sep - angle
+                if abs(orb) <= base_orb + bonus:
+                    out.append(Aspect(a=na, b=nb, aspect=aspect, angle=angle, orb=orb,
+                                      applying=_applying(ba, bb, la, lb, angle),
+                                      exact_sep=sep, chart_a=label_a, chart_b=label_b))
+                    break
     out.sort(key=lambda x: abs(x.orb))
     return out
 

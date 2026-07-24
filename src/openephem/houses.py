@@ -86,6 +86,14 @@ def vertex(armc_deg: float, eps_deg: float, lat_deg: float) -> float:
     return ascendant((armc_deg + 180.0) % 360.0, eps_deg, 90.0 - abs(lat_deg))
 
 
+def co_ascendant(armc_deg: float, eps_deg: float, lat_deg: float) -> float:
+    """Walter Koch's co-ascendant. swisseph computes it as Asc1(ARMC-90)+180; since
+    swisseph's Asc1(x) is our ascendant(x-90), that is the Ascendant taken at the
+    opposite meridian, reflected 180°. Validated < 0.4" vs swe_houses ascmc[5].
+    (Munkasey's polar ascendant is this point minus 180°.)"""
+    return (ascendant((armc_deg + 180.0) % 360.0, eps_deg, lat_deg) + 180.0) % 360.0
+
+
 # --------------------------------------------------------------------------- #
 # House systems
 # --------------------------------------------------------------------------- #
@@ -274,6 +282,7 @@ class Houses:
     vertex: float
     east_point: float
     cusps: list[float]  # 1..12
+    coasc: float = 0.0  # Koch co-ascendant
 
 
 def compute(armc_deg: float, eps_deg: float, lat_deg: float,
@@ -303,7 +312,8 @@ def compute(armc_deg: float, eps_deg: float, lat_deg: float,
         cusps = _assemble_quadrant(_campanus(armc_deg, eps_deg, lat_deg), asc, mc)
     return Houses(system=system, asc=asc, mc=mc,
                   vertex=vertex(armc_deg, eps_deg, lat_deg),
-                  east_point=east_point(armc_deg, eps_deg), cusps=cusps)
+                  east_point=east_point(armc_deg, eps_deg), cusps=cusps,
+                  coasc=co_ascendant(armc_deg, eps_deg, lat_deg))
 
 
 def mean_obliquity(jd_tt: float) -> float:
