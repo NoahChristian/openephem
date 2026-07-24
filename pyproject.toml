@@ -51,7 +51,7 @@ Repository = "https://github.com/NoahChristian/ElpisWeb"
 packages = ["src/openephem"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/openephem", "README.md", "LICENSE", "references.txt", "validation"]
+include = ["src/openephem", "README.md", "CHANGELOG.md", "LICENSE", "references.txt", "validation"]
 
 [tool.ruff]
 line-length = 100
