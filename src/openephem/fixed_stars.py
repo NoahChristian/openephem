@@ -29,7 +29,7 @@ swisseph `swe_fixstar` authority column.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 J2000_JD = 2451545.0  # TT Julian date of the J2000.0 epoch
 
@@ -113,7 +113,7 @@ class SkyfieldFixedStarEngine:
     def __init__(self, ephemeris_path: str = "de421.bsp",
                  prefer_inline: bool = False):
         # Lazy imports so the NAMED_STARS table is usable without skyfield.
-        from skyfield.api import load, Star
+        from skyfield.api import Star, load
         self._Star = Star
         self._load = load
         self._ts = load.timescale()

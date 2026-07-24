@@ -56,5 +56,23 @@ new_html = re.sub(r'<!--AG-->.*?<!--/AG-->',
                   new_html, count=1, flags=re.DOTALL)
 assert 'aria-label="aspect grid"' in new_html, "aspect-grid injection failed"
 
+# styled hover-card (Prism teal = the aspect grid's top-right stop) — parity with the sampler.
+# Moves each SVG <title> onto its parent as data-tip (kills the native tooltip) and shows a
+# cursor-following card. Idempotent: only appended if not already present.
+CARD = ('<style>#tt{position:fixed;z-index:60;pointer-events:none;opacity:0;transition:opacity .1s;'
+        'font:600 12.5px system-ui,-apple-system,"Segoe UI",sans-serif;padding:.32rem .55rem;'
+        'border-radius:8px;white-space:nowrap;box-shadow:0 8px 22px -8px rgba(0,0,0,.55);'
+        'transform:translate(14px,14px);background:#3f9aa0;color:#fff}</style>'
+        '<div id="tt"></div>'
+        '<script>(function(){var tt=document.getElementById("tt");'
+        'document.querySelectorAll("svg title").forEach(function(t){var p=t.parentNode;'
+        'if(p&&p.nodeType===1)p.setAttribute("data-tip",t.textContent);t.remove();});'
+        'document.addEventListener("mousemove",function(e){'
+        'var el=(e.target&&e.target.closest)?e.target.closest("[data-tip]"):null;'
+        'if(el){tt.textContent=el.getAttribute("data-tip");tt.style.left=e.clientX+"px";'
+        'tt.style.top=e.clientY+"px";tt.style.opacity="1";}else tt.style.opacity="0";});})();</script>')
+if 'id="tt"' not in new_html:
+    new_html += CARD
+
 open(ART, "w", encoding="utf-8").write(new_html)
 print("bodies:", len(c["bodies"]), "| aspects:", len(c["aspects"]), "| injected OK")

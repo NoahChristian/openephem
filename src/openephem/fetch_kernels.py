@@ -66,8 +66,8 @@ def fetch_one(number: int, start: str, stop: str, timeout: float = 120.0) -> byt
 
     try:
         data = json.loads(payload)
-    except json.JSONDecodeError:
-        raise RuntimeError(f"non-JSON response: {payload[:300]}")
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"non-JSON response: {payload[:300]}") from exc
 
     if "spk" in data and data["spk"]:
         return base64.b64decode(data["spk"])

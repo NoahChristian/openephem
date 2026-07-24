@@ -58,7 +58,7 @@ ASPECTS = (
 )
 
 try:  # typed views are best-effort; the runtime value is always a plain dict
-    from typing import Optional, TypedDict
+    from typing import TypedDict
 
     class Body(TypedDict, total=False):
         lon: float
@@ -88,9 +88,9 @@ try:  # typed views are best-effort; the runtime value is always a plain dict
 
     class ChartResult(TypedDict, total=False):
         zodiac: str
-        ayanamsa: Optional[float]
-        angles: Optional[Angles]
-        cusps: Optional[list]
+        ayanamsa: float | None
+        angles: Angles | None
+        cusps: list | None
         bodies: dict
         aspects: list
         warnings: list

@@ -31,6 +31,23 @@ def test_find_return_retrograde():
     assert _orb(lon_at(j), 300.0) < 1e-5
 
 
+class _FakeEng:
+    """Synthetic engine at the Sun's mean motion — exercises the engine-driven
+    return paths offline (no DE440/Skyfield)."""
+    def ecliptic_longitude(self, jd, name):
+        return (jd * (360.0 / 365.2422)) % 360.0
+
+
+def test_solar_return_and_return_jd_offline():
+    eng = _FakeEng()
+    j0 = 2451545.0
+    sun0 = eng.ecliptic_longitude(j0, "Sun")
+    js = returns.solar_return(sun0, j0 + 365.0, engine=eng)
+    assert _orb(eng.ecliptic_longitude(js, "Sun"), sun0) < 1e-3
+    jr = returns.return_jd("Sun", sun0, j0 + 365.0, engine=eng)
+    assert _orb(eng.ecliptic_longitude(jr, "Sun"), sun0) < 1e-3
+
+
 @pytest.mark.skipif(not os.path.exists("de440.bsp"), reason="de440.bsp not present")
 def test_solar_return_real():
     from openephem import planets_skyfield

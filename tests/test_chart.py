@@ -1,10 +1,10 @@
 from openephem import chart, timeplace
 
 
-def _moment():
+def _moment(time_known=True):
     return timeplace.ResolvedMoment(
         jd_ut=2451545.0, lat=40.0, lon=-75.0, tz="UTC", offset_hours=0.0,
-        utc_iso=None, time_known=True, address=None, warnings=[])
+        utc_iso=None, time_known=time_known, address=None, warnings=[])
 
 
 class _FakePlanet:
@@ -61,3 +61,62 @@ def test_graceful_when_engines_fail(monkeypatch):
     assert len(c["bodies"]) == 0                          # no bodies...
     assert c["angles"] and len(c["cusps"]) == 12          # ...but houses still work
     assert any("unavailable" in w for w in c["warnings"])
+
+
+def test_points_and_lots(monkeypatch):
+    _patch_engines(monkeypatch)
+    c = chart.assemble(_moment(), house_system="WholeSign",
+                       bodies=["Sun", "Moon", "Ascendant", "Descendant", "ImumCoeli",
+                               "Vertex", "EastPoint", "AriesPoint", "LibraPoint",
+                               "CoAscendant", "SouthNode", "PartOfFortune"])
+    for pt in ("Ascendant", "Descendant", "ImumCoeli", "Vertex", "EastPoint",
+               "AriesPoint", "LibraPoint", "CoAscendant", "SouthNode", "PartOfFortune"):
+        assert pt in c["bodies"], pt
+    assert c["bodies"]["AriesPoint"]["lon"] == 0.0
+    assert c["bodies"]["LibraPoint"]["lon"] == 180.0
+    assert c["bodies"]["PartOfFortune"]["sect"] in ("day", "night")
+
+
+class _FakeStarEng:
+    def __init__(self, *a, **k):
+        pass
+
+    def ecliptic_longitude(self, jd, entry):
+        return 50.3        # ~0.3 deg from the fake Sun (50) -> exercises the conjunction pass
+
+
+def test_fixed_stars(monkeypatch):
+    _patch_engines(monkeypatch)
+    monkeypatch.setattr("openephem.fixed_stars.SkyfieldFixedStarEngine", _FakeStarEng)
+    c = chart.assemble(_moment(), bodies=["Sun", "Regulus"])
+    assert c["bodies"]["Regulus"]["kind"] == "star"
+    assert "star_aspects" in c
+    assert any(sa["star"] == "Regulus" and sa["body"] == "Sun" for sa in c["star_aspects"])
+
+
+class _FakeHypo:
+    def __init__(self, *a, **k):
+        pass
+
+    def ecliptic_longitude(self, jd, name):
+        return 123.0
+
+
+def test_hypothetical_routing(monkeypatch):
+    _patch_engines(monkeypatch)
+    monkeypatch.setattr("openephem.hypothetical.HypotheticalEngine", _FakeHypo)
+    c = chart.assemble(_moment(), bodies=["Cupido"])
+    assert c["bodies"]["Cupido"]["lon"] == 123.0
+
+
+def test_unknown_time_omits_houses(monkeypatch):
+    _patch_engines(monkeypatch)
+    c = chart.assemble(_moment(time_known=False), bodies=["Sun"])
+    assert c["angles"] is None and c["cusps"] is None
+    assert any("birth time" in w for w in c["warnings"])
+
+
+def test_unknown_body_warns(monkeypatch):
+    _patch_engines(monkeypatch)
+    c = chart.assemble(_moment(), bodies=["Sun", "Nonexistent"])
+    assert any("unknown body" in w for w in c["warnings"])

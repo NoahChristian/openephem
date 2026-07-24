@@ -34,8 +34,8 @@ import argparse
 import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from . import timeplace as tp
 from . import chart as chartmod
+from . import timeplace as tp
 
 MAX_BODY = 64 * 1024
 

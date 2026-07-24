@@ -28,9 +28,8 @@ from __future__ import annotations
 import math
 import re
 from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
-
 
 # --------------------------------------------------------------------------- #
 # Calendar -> Julian Day (Meeus, ch. 7)
@@ -127,7 +126,7 @@ def geocode(query: str, provider: str = "nominatim", api_key: str | None = None,
     """Place string -> (lat, lon, resolved_address). Default = free OSM Nominatim
     (1 req/s policy, set a real user_agent). provider='google' needs api_key."""
     try:
-        from geopy.geocoders import Nominatim, GoogleV3
+        from geopy.geocoders import GoogleV3, Nominatim
     except ImportError as exc:
         raise RuntimeError("pip install geopy (or pass lat=/lon= explicitly)") from exc
     if provider == "google":

@@ -11,7 +11,7 @@ Deterministic and self-contained; unit-testable without any external data.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 # Aspect angle -> default orb (degrees). Majors on by default; minors optional.
 MAJOR = {

@@ -12,8 +12,8 @@ and renderer work in any environment.
 
 from __future__ import annotations
 
-from . import houses as _houses
 from . import aspects as _aspects
+from . import houses as _houses
 from . import vedic as _vedic
 
 _SIGNS = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra",
@@ -94,7 +94,7 @@ def assemble(resolved, *, house_system="Placidus", bodies=None,
     except Exception as exc:  # noqa: BLE001
         warnings.append(f"asteroid engine unavailable: {exc}")
     hypo_eng = None
-    if any(_B.get(n) and _B.get(n).engine == "hypothetical" for n in eph_bodies):
+    if any((_hb := _B.get(n)) is not None and _hb.engine == "hypothetical" for n in eph_bodies):
         try:
             from . import hypothetical as H
             hypo_eng = H.HypotheticalEngine(de440)
@@ -218,10 +218,10 @@ def assemble(resolved, *, house_system="Placidus", bodies=None,
     if star_bodies:
         _sp = {n: {"lon": positions[n]["lon"]} for n in star_bodies if n in positions}
         _bp = {n: {"lon": positions[n]["lon"]} for n in eph_bodies if n in positions}
-        for _a in _aspects.between(_sp, _bp, orbs={"conjunction": star_orb}, luminary_bonus=0.5):
-            if _a.aspect == "conjunction":
-                star_aspects.append({"star": _a.a, "body": _a.b, "orb": round(_a.orb, 3)})
-        star_aspects.sort(key=lambda x: abs(x["orb"]))
+        _conj = [_a for _a in _aspects.between(_sp, _bp, orbs={"conjunction": star_orb},
+                                               luminary_bonus=0.5) if _a.aspect == "conjunction"]
+        _conj.sort(key=lambda a: abs(a.orb))          # Aspect.orb is float -> type-clean
+        star_aspects = [{"star": a.a, "body": a.b, "orb": round(a.orb, 3)} for a in _conj]
 
     result = {
         "jd_ut": jd,

@@ -38,7 +38,7 @@ dependencies = [
 asteroids = ["spiceypy>=6.0"]                                  # Chiron/Ceres/... (Horizons SPK type 21)
 geo = ["timezonefinder>=6.5", "geopy>=2.4", "tzdata"]          # place -> lat/lon -> tz
 full = ["spiceypy>=6.0", "timezonefinder>=6.5", "geopy>=2.4", "tzdata", "pandas>=1.5"]
-test = ["pytest>=7"]
+test = ["pytest>=7", "pytest-cov>=4", "ruff>=0.6", "mypy>=1.10"]
 
 [project.scripts]
 openephem-serve = "openephem.service:main"
@@ -52,3 +52,52 @@ packages = ["src/openephem"]
 
 [tool.hatch.build.targets.sdist]
 include = ["src/openephem", "README.md", "LICENSE", "references.txt", "validation"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]   # long lines tolerated in dense trig / data tables
+
+[tool.mypy]
+python_version = "3.10"
+files = ["src/openephem"]
+ignore_missing_imports = true       # skyfield / spiceypy ship no type stubs
+# lenient baseline: enforce type consistency where annotations exist, not full strictness
+disallow_untyped_defs = false
+warn_unused_ignores = false
+
+# Don't analyze third-party stubs (numpy 2.x stubs use 3.12-only `type` syntax and
+# would fail under python_version 3.10) — treat these deps as untyped.
+[[tool.mypy.overrides]]
+module = ["numpy.*", "skyfield.*", "spiceypy.*"]
+follow_imports = "skip"
+follow_imports_for_stubs = true
+
+[tool.coverage.run]
+source = ["openephem"]
+omit = [
+    # Ephemeris engines: require DE440 + JPL kernels + network. Validated by the
+    # parity harness (validation/) and DE440-gated tests, not offline unit tests.
+    "*/planets_skyfield.py",
+    "*/asteroids_skyfield.py",
+    "*/fixed_stars.py",
+    "*/hypothetical.py",
+    # I/O boundaries: kernel fetching (network) and the HTTP service.
+    "*/fetch_kernels.py",
+    "*/service.py",
+    # place -> lat/lon -> tz needs optional geo deps (geopy/timezonefinder), absent in CI.
+    "*/timeplace.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 85
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+    "def _demo",
+]

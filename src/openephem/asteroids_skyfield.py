@@ -65,6 +65,7 @@ class SkyfieldAsteroidEngine:
 
     def __init__(self, planets_ephemeris: str = "de440.bsp", kernel_dir: str = "."):
         import os
+
         import spiceypy as sp
         from skyfield.api import load
         self._os = os

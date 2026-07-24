@@ -39,6 +39,7 @@ Licensing: Skyfield is MIT, DE440 is public-domain; no AGPL dependency.
 from __future__ import annotations
 
 import math
+from functools import partial
 
 # Julian epoch 1900.0 — the equinox/epoch the Uranian elements are referred to.
 J1900 = 2415020.0
@@ -72,9 +73,10 @@ ELEMENTS: dict[str, tuple] = {
 #     node =  47.787931  - 1670.056   * T     deg
 #     a = 0.13744 AU, e = 0.019, i = 7.5 deg
 _VULCAN_EPOCH = J1900
-_VULCAN = dict(a=0.13744, e=0.019, incl=7.5,
-               M=(252.8987988, 707550.7341),
-               peri=(322.212069, 1670.056), node=(47.787931, -1670.056))
+_VULCAN_A, _VULCAN_E, _VULCAN_INCL = 0.13744, 0.019, 7.5
+_VULCAN_M = (252.8987988, 707550.7341)      # M(T)    = M[0]    + M[1]*T
+_VULCAN_PERI = (322.212069, 1670.056)       # peri(T) = PERI[0] + PERI[1]*T
+_VULCAN_NODE = (47.787931, -1670.056)       # node(T) = NODE[0] + NODE[1]*T
 #
 # White Moon / "Selena" — a GEOCENTRIC, circular, in-plane mean point (the bright
 #   counterpart to Black Moon Lilith). Reduces to a linear mean longitude of date;
@@ -108,8 +110,8 @@ class HypotheticalEngine:
 
     def __init__(self, ephemeris_path: str = "de440.bsp"):
         import numpy as np
+        from skyfield import nutationlib, precessionlib
         from skyfield.api import load
-        from skyfield import precessionlib, nutationlib
         self._np = np
         self._prec = precessionlib
         self._nut = nutationlib
@@ -119,7 +121,7 @@ class HypotheticalEngine:
         self._sun = self._eph["sun"]
         # cache the per-equinox rotation (ecliptic-of-equinox -> ICRS); the element
         # equinoxes are fixed, so this is computed once per distinct equinox.
-        self._rot: dict[float, "np.ndarray"] = {}
+        self._rot: dict[float, np.ndarray] = {}
 
     # -- frame helpers -------------------------------------------------------
 
@@ -165,10 +167,10 @@ class HypotheticalEngine:
     def _helio_vulcan(self, jd_tt: float):
         """Vulcan's heliocentric position; elements drift linearly in T (of date)."""
         T = (jd_tt - _VULCAN_EPOCH) / 36525.0
-        v = _VULCAN
-        return self._orbit_vector(v["M"][0] + v["M"][1] * T, v["a"], v["e"],
-                                  v["peri"][0] + v["peri"][1] * T,
-                                  v["node"][0] + v["node"][1] * T, v["incl"])
+        return self._orbit_vector(
+            _VULCAN_M[0] + _VULCAN_M[1] * T, _VULCAN_A, _VULCAN_E,
+            _VULCAN_PERI[0] + _VULCAN_PERI[1] * T,
+            _VULCAN_NODE[0] + _VULCAN_NODE[1] * T, _VULCAN_INCL)
 
     # -- public --------------------------------------------------------------
 
@@ -196,7 +198,7 @@ class HypotheticalEngine:
             helio = self._helio_vulcan
         else:                                       # constant elements, fixed equinox
             R = self._ecl_equinox_to_icrs(ELEMENTS[name][1])
-            helio = lambda je, _n=name: self._helio_ecl(_n, je)
+            helio = partial(self._helio_ecl, name)
 
         earth = (np.array(self._earth.at(t).position.au)
                  - np.array(self._sun.at(t).position.au))          # helio, ICRS

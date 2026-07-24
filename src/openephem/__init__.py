@@ -18,13 +18,26 @@ is fetched at runtime, not shipped.
 
 __version__ = "0.1.0"
 
-from . import (                       # noqa: F401 — submodule access (openephem.houses, ...)
-    aspects, houses, vedic, timeplace, chart, service, schema, derived, returns,
-    bodies, planets_skyfield, asteroids_skyfield, hypothetical, fixed_stars, fetch_kernels,
+from . import (  # noqa: F401 — submodule access (openephem.houses, ...)
+    aspects,
+    asteroids_skyfield,
+    bodies,
+    chart,
+    derived,
+    fetch_kernels,
+    fixed_stars,
+    houses,
+    hypothetical,
+    planets_skyfield,
+    returns,
+    schema,
+    service,
+    timeplace,
+    vedic,
 )
-from .chart import assemble           # noqa: F401
-from .timeplace import resolve        # noqa: F401
 from .bodies import available_bodies  # noqa: F401 — the master body list
+from .chart import assemble  # noqa: F401
+from .timeplace import resolve  # noqa: F401
 
 __all__ = [
     "__version__", "assemble", "resolve", "available_bodies",

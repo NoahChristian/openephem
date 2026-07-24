@@ -23,14 +23,14 @@ All longitudes are tropical, ecliptic of date, degrees in [0, 360).
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 _D2R = math.pi / 180.0
 _R2D = 180.0 / math.pi
 
 CLOSED_FORM = {"WholeSign", "Equal", "Porphyry"}
 QUADRANT = {"Placidus", "Regiomontanus", "Campanus", "Koch"}
-DEFERRED = set()
+DEFERRED: set[str] = set()
 SUPPORTED = CLOSED_FORM | QUADRANT
 
 
@@ -111,8 +111,6 @@ def _porphyry(asc: float, mc: float) -> list[float]:
     """Trisect the ecliptic arcs between the four angles."""
     ic = (mc + 180.0) % 360.0
     desc = (asc + 180.0) % 360.0
-    q1 = (asc - ic) % 360.0     # IC -> Asc  (houses 2,3 fill this backwards)
-    q2 = (mc - asc) % 360.0     # Asc -> MC? sign handling below
     # Build via the four quadrants Asc->IC->Desc->MC->Asc, trisecting each.
     cusps = [0.0] * 12
     cusps[0] = asc            # 1
