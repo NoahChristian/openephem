@@ -51,6 +51,7 @@ deps) you still get houses, angles, and aspects, plus warnings for what's missin
 | **Houses** | Placidus, Koch, Regiomontanus, Campanus, Whole Sign, Equal, Porphyry, + Asc/MC/Vertex/East Point |
 | **Aspects** | majors + optional minors, configurable orbs, applying/separating |
 | **Profections** | annual/monthly/daily profected place + sign + domicile ruler (Lord of the Year/Month/Day) — pure data, no interpretation |
+| **Firdaria** | Persian firdaria time-lords (sect-based order), major + sub periods with a dated timeline and the active lord(s) — pure data |
 | **Zodiacs** | tropical **and** Vedic sidereal (Lahiri, Fagan-Bradley, Krishnamurti, Raman) + nakshatras/padas/rashis |
 | **Time & place** | timezone/DST/historical/LMT (IANA tzdata), Julian↔Gregorian calendar, offline coord→timezone, place geocoding |
 | **Output** | serializable chart dict, self-contained **SVG chart wheel**, zero-dep **HTTP API** |

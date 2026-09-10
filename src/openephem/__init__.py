@@ -25,6 +25,7 @@ from . import (  # noqa: F401 — submodule access (openephem.houses, ...)
     chart,
     derived,
     fetch_kernels,
+    firdaria,
     fixed_stars,
     houses,
     hypothetical,
@@ -44,5 +45,5 @@ __all__ = [
     "__version__", "assemble", "resolve", "available_bodies",
     "aspects", "houses", "vedic", "timeplace", "chart", "service", "schema",
     "derived", "returns", "bodies", "planets_skyfield", "asteroids_skyfield",
-    "hypothetical", "fixed_stars", "fetch_kernels", "profections",
+    "hypothetical", "fixed_stars", "fetch_kernels", "profections", "firdaria",
 ]

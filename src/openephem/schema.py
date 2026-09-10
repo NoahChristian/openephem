@@ -21,7 +21,24 @@ are `None` for an unknown birth time (houseless chart).
                                                #   only when fixed stars were selected
       "profections": Profection | absent,      # optional; present only when a
                                                #   profection age / as-of date was given
+      "firdaria":    Firdaria | absent,        # optional; present only when a
+                                               #   firdaria as-of date was given
       "warnings": [str],
+    }
+
+    Firdaria = {                               # Persian firdaria time-lords — pure data
+      "sect":     "day" | "night",             # order depends on the sect
+      "age":      int, "as_of": "YYYY-MM-DD",  # present with an as-of date
+      "current":  {"major": name, "sub": name, # the active major/sub lord…
+                   "major_start": date, "major_end": date,
+                   "sub_start": date, "sub_end": date},
+      "timeline": [FirdariaPeriod],            # every major period, in order
+    }
+    FirdariaPeriod = {
+      "ruler":     name,                       # the major-period lord
+      "start": date, "end": date,              # ISO dates
+      "age_start": float, "age_end": float,
+      "subs": [{"ruler": name, "start": date, "end": date}],  # 7 sub-periods (nodes optional)
     }
 
     Profection = {                             # profection — pure data, no meaning
@@ -145,6 +162,21 @@ try:  # typed views are best-effort; the runtime value is always a plain dict
         monthly: PeriodBlock
         daily: PeriodBlock
 
+    class FirdariaPeriod(TypedDict, total=False):
+        ruler: str
+        start: str
+        end: str
+        age_start: float
+        age_end: float
+        subs: list
+
+    class Firdaria(TypedDict, total=False):
+        sect: str
+        age: int
+        as_of: str
+        current: dict
+        timeline: list
+
     class ChartResult(TypedDict, total=False):
         zodiac: str
         ayanamsa: float | None
@@ -153,9 +185,11 @@ try:  # typed views are best-effort; the runtime value is always a plain dict
         bodies: dict
         aspects: list
         profections: Profection
+        firdaria: Firdaria
         warnings: list
 except Exception:  # pragma: no cover
-    Body = Aspect = Angles = Profection = PeriodBlock = ChartResult = dict  # type: ignore
+    Body = Aspect = Angles = Profection = PeriodBlock = dict  # type: ignore
+    Firdaria = FirdariaPeriod = ChartResult = dict  # type: ignore
 
 
 def validate(chart: dict) -> list:

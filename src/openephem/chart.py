@@ -57,7 +57,8 @@ def assemble(resolved, *, house_system="Placidus", bodies=None,
              de440="de440.bsp", kernel_dir="./kernels",
              include_minor_aspects=False, star_orb=1.0,
              zodiac="tropical", ayanamsa="lahiri",
-             profection_age=None, profection_as_of=None) -> dict:
+             profection_age=None, profection_as_of=None,
+             firdaria_as_of=None, firdaria_horizon=90.0) -> dict:
     from . import bodies as _B
     bodies = bodies or DEFAULT_BODIES
     warnings = list(resolved.warnings)
@@ -298,6 +299,25 @@ def assemble(resolved, *, house_system="Placidus", bodies=None,
                 prof = _prof.annual_profection(asc_lon, profection_age)
                 _enrich_lord(prof)
             result["profections"] = prof
+
+    # -- firdaria (Persian time-lords; pure computation; needs sect from the chart) --
+    if firdaria_as_of is not None:
+        sun_p = positions.get("Sun")
+        if sun_p is None or not result.get("cusps"):
+            warnings.append("firdaria omitted: needs a known birth time "
+                            "(Sun + houses to determine sect)")
+        else:
+            from . import firdaria as _fir
+            from . import profections as _prof
+            sect = "day" if _house_of(sun_p["lon"], result["cusps"]) >= 7 else "night"
+            jd_birth_local = jd + (resolved.offset_hours or 0.0) / 24.0
+            if isinstance(firdaria_as_of, (list, tuple)):
+                y, m, d = (list(firdaria_as_of) + [1, 1])[:3]
+                jd_asof = _prof._calendar_to_jd(int(y), int(m), int(d))
+            else:
+                jd_asof = float(firdaria_as_of)
+            result["firdaria"] = _fir.firdaria(jd_birth_local, sect, jd_asof,
+                                               horizon_years=firdaria_horizon)
 
     return result
 

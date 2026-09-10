@@ -7,6 +7,12 @@ All notable changes to **openephem** are documented here. The format follows
 ## [Unreleased]
 
 ### Added
+- **Firdaria** (`firdaria.py`): Persian firdaria (alfridaria) time-lords as pure
+  computation — the sect-based 75-year sequence of planetary periods, each split into
+  seven sub-periods (node periods subdivided too by default), with a dated timeline and
+  the active major/sub lord for a date. `assemble()` gains `firdaria_as_of=` (sect is
+  derived from the chart — Sun above/below the horizon) → a `firdaria` block (schema
+  `Firdaria`/`FirdariaPeriod`). No interpretation.
 - **Profections** (`profections.py`): annual, monthly, and daily profections as pure
   computation — the activated whole-sign house, its sign, and the sign's domicile
   ruler (Lord of the Year / Month / Day). `assemble()` gains `profection_age=` (annual
