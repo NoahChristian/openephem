@@ -59,7 +59,8 @@ def assemble(resolved, *, house_system="Placidus", bodies=None,
              zodiac="tropical", ayanamsa="lahiri",
              profection_age=None, profection_as_of=None,
              firdaria_as_of=None, firdaria_horizon=90.0,
-             releasing_as_of=None, releasing_lot="fortune") -> dict:
+             releasing_as_of=None, releasing_lot="fortune",
+             decennials_as_of=None, decennials_start=None) -> dict:
     from . import bodies as _B
     bodies = bodies or DEFAULT_BODIES
     warnings = list(resolved.warnings)
@@ -353,6 +354,39 @@ def assemble(resolved, *, house_system="Placidus", bodies=None,
                 result["zodiacal_releasing"] = _zr.releasing(
                     chosen, jd_birth_local, jd_asof, lot_name=releasing_lot,
                     fortune_lon=lots["fortune"])
+
+    # -- decennials (Valens time-lords; 10y9m general periods in Chaldean order) --
+    if decennials_as_of is not None:
+        ang = result.get("angles") or {}
+        sun_p, moon_p = positions.get("Sun"), positions.get("Moon")
+        need_lot = decennials_start is None
+        if need_lot and (ang.get("asc") is None or sun_p is None or moon_p is None
+                         or not result.get("cusps")):
+            warnings.append("decennials omitted: needs a known birth time "
+                            "(Ascendant + Sun/Moon) to find the Lot of Fortune's ruler, "
+                            "or pass decennials_start=")
+        else:
+            from . import decennials as _dec
+            from . import profections as _prof
+            from . import zodiacal_releasing as _zr
+            if decennials_start is not None:
+                start_planet = decennials_start
+            else:
+                assert sun_p is not None and moon_p is not None   # guarded by need_lot above
+                sect = "day" if _house_of(sun_p["lon"], result["cusps"]) >= 7 else "night"
+                fortune = _zr.lot("fortune", sect, ang["asc"], sun_p["lon"], moon_p["lon"])
+                start_planet = _prof.DOMICILE_RULER[_zr.SIGNS[int(fortune // 30) % 12]]
+            if start_planet not in _dec.MINOR_YEARS:
+                warnings.append(f"decennials: {start_planet!r} is not a classical planet "
+                                f"(one of {', '.join(_dec.CHALDEAN)})")
+            else:
+                jd_birth_local = jd + (resolved.offset_hours or 0.0) / 24.0
+                if isinstance(decennials_as_of, (list, tuple)):
+                    y, m, d = (list(decennials_as_of) + [1, 1])[:3]
+                    jd_asof = _prof._calendar_to_jd(int(y), int(m), int(d))
+                else:
+                    jd_asof = float(decennials_as_of)
+                result["decennials"] = _dec.decennials(start_planet, jd_birth_local, jd_asof)
 
     return result
 

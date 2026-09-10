@@ -25,7 +25,24 @@ are `None` for an unknown birth time (houseless chart).
                                                #   firdaria as-of date was given
       "zodiacal_releasing": ZR | absent,       # optional; present only when a
                                                #   releasing as-of date was given
+      "decennials":  Decennials | absent,      # optional; present only when a
+                                               #   decennials as-of date was given
       "warnings": [str],
+    }
+
+    Decennials = {                             # Valens decennial time-lords — pure data
+      "start":    name,                        # the first general chronocrator (giver of years)
+      "age":      int, "as_of": "YYYY-MM-DD",  # present with an as-of date
+      "current":  {"major": name, "sub": name, # the active general/sub lord…
+                   "major_start": date, "major_end": date,
+                   "sub_start": date, "sub_end": date},
+      "timeline": [DecennialPeriod],           # the general periods (each 10y 9m), in order
+    }
+    DecennialPeriod = {
+      "ruler":     name,                       # the general-decennial lord
+      "start": date, "end": date,              # ISO dates (span is always 10y 9m)
+      "age_start": float, "age_end": float,
+      "subs": [{"ruler": name, "start": date, "end": date}],  # 7 sub-periods (minor-years-as-months)
     }
 
     ZR = {                                     # Zodiacal Releasing (Valens) — pure data
@@ -222,6 +239,21 @@ try:  # typed views are best-effort; the runtime value is always a plain dict
         current: dict
         timeline: list
 
+    class DecennialPeriod(TypedDict, total=False):
+        ruler: str
+        start: str
+        end: str
+        age_start: float
+        age_end: float
+        subs: list
+
+    class Decennials(TypedDict, total=False):
+        start: str
+        age: int
+        as_of: str
+        current: dict
+        timeline: list
+
     class ChartResult(TypedDict, total=False):
         zodiac: str
         ayanamsa: float | None
@@ -232,11 +264,13 @@ try:  # typed views are best-effort; the runtime value is always a plain dict
         profections: Profection
         firdaria: Firdaria
         zodiacal_releasing: ZR
+        decennials: Decennials
         warnings: list
 except Exception:  # pragma: no cover
     Body = Aspect = Angles = Profection = PeriodBlock = dict  # type: ignore
     Firdaria = FirdariaPeriod = ChartResult = dict  # type: ignore
     ZR = ZRPeriod = ZRLevel = dict  # type: ignore
+    Decennials = DecennialPeriod = dict  # type: ignore
 
 
 def validate(chart: dict) -> list:

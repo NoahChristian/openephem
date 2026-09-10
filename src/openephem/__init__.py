@@ -23,6 +23,7 @@ from . import (  # noqa: F401 — submodule access (openephem.houses, ...)
     asteroids_skyfield,
     bodies,
     chart,
+    decennials,
     derived,
     fetch_kernels,
     firdaria,
@@ -47,5 +48,5 @@ __all__ = [
     "aspects", "houses", "vedic", "timeplace", "chart", "service", "schema",
     "derived", "returns", "bodies", "planets_skyfield", "asteroids_skyfield",
     "hypothetical", "fixed_stars", "fetch_kernels", "profections", "firdaria",
-    "zodiacal_releasing",
+    "zodiacal_releasing", "decennials",
 ]

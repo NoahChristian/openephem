@@ -7,6 +7,16 @@ All notable changes to **openephem** are documented here. The format follows
 ## [Unreleased]
 
 ### Added
+- **Decennials** (`decennials.py`): Vettius Valens' decennial time-lords as pure
+  computation — the seven classical planets rule in turn, each general period a fixed
+  **10 years 9 months** (their minor years sum to 129 months), sub-divided into seven
+  planetary sub-periods of *minor-years-as-months*. Both the succession of the general
+  decennials and the order within them follow the **Chaldean order** (Saturn, Jupiter,
+  Mars, Sun, Venus, Mercury, Moon), cycling from the starting planet; each decennial's
+  sub-distribution begins with its own general ruler. `assemble()` gains `decennials_as_of=`
+  and `decennials_start=` (default: the domicile ruler of the sign holding the Lot of
+  Fortune) → a `decennials` block (schema `Decennials`/`DecennialPeriod`). Tropical year,
+  consistent with the other time-lords. No interpretation.
 - **Zodiacal Releasing** (`zodiacal_releasing.py`): Vettius Valens' releasing as pure
   computation — periods released in zodiacal order from a Hermetic Lot, each sign's
   length its ruler's Lesser Years, cascading through levels L1–L4 (years → months → …).
