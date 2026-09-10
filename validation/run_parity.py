@@ -52,6 +52,23 @@ DEFAULT_TOL = {
     # accumulate over the 2500-yr baseline (catalog difference, not a code error).
     "_star": 30.0, "_house_angle": 60.0, "_house_cusp": 120.0, "_default": 5.0,
 }
+
+# Antiquity profile (--profile ancient), for the extended 1500 BC - 2500 AD range.
+# Same methodology as DEFAULT_TOL, but the DE431(swisseph authority) vs DE441
+# (candidate) ephemeris-vintage divergence and the fixed-star proper-motion
+# accumulation both grow roughly with the baseline length, so over a ~3500-yr
+# baseline (to 1500 BC) they are ~2-3x their year-0 size. Measured worst-cases over
+# 1500 BC - 2499 AD (12169 instants, step 120 d): Sun 2.5", Moon 80", Mercury 14",
+# Venus 10", Mars 6.9", gas giants <3.5", Castor 52", Altair 46" — all astrologically
+# nil (Moon 80" = 0.022 deg) and physical, NOT code errors. Median stays ~0.15",
+# p95 ~2" across the whole span. These tolerances bound those documented effects;
+# the tight DEFAULT_TOL still gates the modern (0-2500) run.
+ANCIENT_TOL = dict(DEFAULT_TOL, **{
+    "Sun": 3.0, "Moon": 90.0, "Mercury": 16.0, "Venus": 12.0, "Mars": 8.0,
+    "Jupiter": 4.0, "Saturn": 3.0, "Uranus": 3.0, "Neptune": 3.0, "Pluto": 4.0,
+    "_star": 55.0,  # Castor (fast visual binary) reaches ~52" over 3500 yr
+})
+
 SKIP = set()  # (was TrueNode/OscuLilith — now implemented via osculating elements)
 
 
@@ -136,7 +153,7 @@ def candidate_longitude(cand: Candidate, name: str, jd: float):
 
 def run(args):
     cand = Candidate(args.de440, args.kernel_dir)
-    tol = dict(DEFAULT_TOL)
+    tol = dict(ANCIENT_TOL if args.profile == "ancient" else DEFAULT_TOL)
 
     # per-body accumulators
     stats: dict[str, dict] = {}
@@ -278,6 +295,10 @@ def parse_args(argv=None):
     p.add_argument("--fixtures", default="./fixtures", help="dir with oracle.json / fixstars.json")
     p.add_argument("--de440", default="de440.bsp", help="JPL DE440 kernel for Skyfield")
     p.add_argument("--kernel-dir", default="./kernels", help="dir with asteroid .bsp kernels")
+    p.add_argument("--profile", choices=["modern", "ancient"], default="modern",
+                   help="tolerance profile: 'modern' (tight, gates 0-2500) or "
+                        "'ancient' (widened for the documented DE431/DE441 vintage + "
+                        "proper-motion growth over the 1500 BC - 2500 AD range)")
     p.add_argument("--min-jd", type=float, default=float("-inf"),
                    help="only compare instants with jd_ut >= this (for kernel-range segments)")
     p.add_argument("--max-jd", type=float, default=float("inf"),

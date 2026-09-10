@@ -348,16 +348,28 @@ def nutation(jd: float) -> tuple[float, float]:
 
 # Long-term sidereal-time correction. IAU-1982 GMST is only accurate over a few
 # centuries; swisseph uses long-term precession (Vondrak), so GMST diverges up to
-# ~326" by year 0. This deg-5 polynomial (fit offline vs swisseph over yr 1-2600;
-# coefficients are facts) matches swisseph's sidereal time to ~arcsec across
-# 0-2500, and is ~0 in the modern era. Calibrated for ~0-2600; outside that it
-# extrapolates (production charts are 1900-2100, where it is negligible).
-_ST_CORR = (0.0555751, -1.00943, 0.075145, 0.069184, 0.0139427, 0.000440869)  # arcsec T^0..5
+# ~326" by year 0 and ~1070" by 1500 BC. Corrected by two branches, each fit
+# offline vs swisseph (the coefficients are astronomical facts, not copyrightable):
+#   * modern branch (deg-5): fit over yr 0-2600; ~arcsec there, ~0 in the modern
+#     era where production charts live (1900-2100).
+#   * ancient branch (deg-6): fit over yr 1550 BC - 300 AD. The modern polynomial
+#     diverges catastrophically when extrapolated past year 0 (its T^5 term reaches
+#     ~-1.4 deg by 1500 BC), so charts before 1 AD use this branch instead. Max fit
+#     error < 5" over 1500 BC - 300 AD (RMS ~1.5"), far inside the house tolerance.
+# Seam at year 0 (T = -20): a ~9" step between branches, astrologically nil and
+# well under the cusp tolerance. Both branches extrapolate outside their windows;
+# the validated range is 1500 BC - 2500 AD.
+_ST_CORR = (0.0555751, -1.00943, 0.075145, 0.069184, 0.0139427, 0.000440869)  # modern, arcsec T^0..5
+_ST_CORR_ANCIENT = (-14609.36, -3168.085, -275.4979, -12.3648,
+                    -0.2982107, -0.003653065, -1.752921e-05)  # yr < 1 AD, arcsec T^0..6
 
 
 def _st_longterm_correction_deg(jd_ut: float) -> float:
     T = (jd_ut - 2451545.0) / 36525.0
-    return sum(_ST_CORR[k] * T**k for k in range(6)) / 3600.0
+    # T < -20 is before ~year 0, where the modern polynomial would wildly
+    # extrapolate; use the ancient-branch fit there instead.
+    c = _ST_CORR_ANCIENT if T < -20.0 else _ST_CORR
+    return sum(c[k] * T**k for k in range(len(c))) / 3600.0
 
 
 def houses_from_jd(jd_ut: float, lat_deg: float, lon_deg: float,

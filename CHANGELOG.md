@@ -4,6 +4,35 @@ All notable changes to **openephem** are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- **Profections** (`profections.py`): annual, monthly, and daily profections as pure
+  computation — the activated whole-sign house, its sign, and the sign's domicile
+  ruler (Lord of the Year / Month / Day). `assemble()` gains `profection_age=` (annual
+  only) and `profection_as_of=` (a date → the full annual+monthly+daily set), returning
+  a `profections` block on the chart dict (schema `Profection`/`PeriodBlock`); each
+  lord is enriched with its natal placement. No interpretation (dignity/condition/
+  meaning) — that stays out of scope per the README and belongs to the consuming app.
+
+### Validation
+- **Extended the swisseph parity range to 1500 BC – 2500 AD** (was 0–2500):
+  12169 instants over ~4000 years against the full JPL DE441 kernel. Median error
+  ~0.15″, p95 ~2″; worst-case tails (Moon < 80″, Mercury < 14″, Castor < 52″) are
+  documented DE431-vs-DE441 vintage drift and fixed-star proper-motion accumulation
+  that grow with the baseline — astrologically negligible, not code errors.
+- `run_parity.py` gains `--profile {modern,ancient}`: the tight default still gates
+  the modern 0–2500 run; `ancient` applies widened, documented tolerances for the
+  extended range. The production era 1900–2100 remains sub-milliarcsecond.
+
+### Fixed
+- `houses.py`: the long-term sidereal-time correction (`_ST_CORR`) was a degree-5
+  polynomial fit only over years 0–2600 and diverged catastrophically when
+  extrapolated before year 0 (~−1.4° by 1500 BC, flipping whole-sign cusps by a
+  full sign). Added a dedicated **ancient branch** (degree-6, fit over 1550 BC–300
+  AD, max fit error < 5″), applied piecewise for dates before year 0. **Modern-era
+  house accuracy is unchanged.**
+
 ## [0.1.0] — 2026-07-24
 
 Initial public release.

@@ -56,7 +56,8 @@ def _dispatch_lon(name, jd, planet_eng, asteroid_eng, hypo_eng=None):
 def assemble(resolved, *, house_system="Placidus", bodies=None,
              de440="de440.bsp", kernel_dir="./kernels",
              include_minor_aspects=False, star_orb=1.0,
-             zodiac="tropical", ayanamsa="lahiri") -> dict:
+             zodiac="tropical", ayanamsa="lahiri",
+             profection_age=None, profection_as_of=None) -> dict:
     from . import bodies as _B
     bodies = bodies or DEFAULT_BODIES
     warnings = list(resolved.warnings)
@@ -257,6 +258,46 @@ def assemble(resolved, *, house_system="Placidus", bodies=None,
             result["angles"] = {k: (v - ay) % 360.0 for k, v in angles.items()}
         if cusps:
             result["cusps"] = [(c - ay) % 360.0 for c in cusps]
+
+    # -- profections (pure computation; whole-sign from the Ascendant) --
+    # Added last so it uses the active-zodiac (tropical/sidereal) Ascendant. Needs
+    # no ephemeris — just the rising sign + a date/age. An as-of date yields the full
+    # annual+monthly+daily set (Lord of the Year/Month/Day); an age alone yields the
+    # annual place only. Activated house/sign + domicile ruler are returned as data;
+    # no interpretation (see profections.py).
+    if profection_age is not None or profection_as_of is not None:
+        asc_lon = (result.get("angles") or {}).get("asc")
+        if asc_lon is None:
+            warnings.append("profections omitted: needs a known birth time (Ascendant)")
+        else:
+            from . import profections as _prof
+
+            def _enrich_lord(block):
+                # Attach the period lord's natal placement — positional data, not
+                # interpretation — when that planet is among the computed bodies.
+                rp = positions.get(block.get("ruler"))
+                if rp is not None:
+                    block["ruler_lon"] = float(rp["lon"])
+                    block["ruler_sign"] = rp.get("sign") or _SIGNS[int(rp["lon"] // 30) % 12]
+                    if result.get("cusps"):
+                        block["ruler_house"] = _house_of(rp["lon"], result["cusps"])
+
+            jd_birth_local = jd + (resolved.offset_hours or 0.0) / 24.0
+            if profection_as_of is not None:
+                if isinstance(profection_as_of, (list, tuple)):
+                    y, m, d = (list(profection_as_of) + [1, 1])[:3]
+                    jd_asof = _prof._calendar_to_jd(int(y), int(m), int(d))
+                else:
+                    jd_asof = float(profection_as_of)
+                prof = _prof.full_profection(asc_lon, jd_birth_local, jd_asof)
+                prof["as_of"] = _prof._iso(jd_asof)
+                _enrich_lord(prof)
+                _enrich_lord(prof["monthly"])
+                _enrich_lord(prof["daily"])
+            else:
+                prof = _prof.annual_profection(asc_lon, profection_age)
+                _enrich_lord(prof)
+            result["profections"] = prof
 
     return result
 

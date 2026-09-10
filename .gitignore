@@ -16,6 +16,7 @@ coverage.xml
 
 # Generated / large data (regenerate; do not commit)
 fixtures/
+fixtures*/
 kernels/
 *.bsp
 de4*.bsp

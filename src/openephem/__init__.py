@@ -29,6 +29,7 @@ from . import (  # noqa: F401 — submodule access (openephem.houses, ...)
     houses,
     hypothetical,
     planets_skyfield,
+    profections,
     returns,
     schema,
     service,
@@ -43,5 +44,5 @@ __all__ = [
     "__version__", "assemble", "resolve", "available_bodies",
     "aspects", "houses", "vedic", "timeplace", "chart", "service", "schema",
     "derived", "returns", "bodies", "planets_skyfield", "asteroids_skyfield",
-    "hypothetical", "fixed_stars", "fetch_kernels",
+    "hypothetical", "fixed_stars", "fetch_kernels", "profections",
 ]

@@ -19,7 +19,38 @@ are `None` for an unknown birth time (houseless chart).
       "aspects":  [Aspect],
       "star_aspects": [{"star": name, "body": name, "orb": float}],  # optional; present
                                                #   only when fixed stars were selected
+      "profections": Profection | absent,      # optional; present only when a
+                                               #   profection age / as-of date was given
       "warnings": [str],
+    }
+
+    Profection = {                             # profection — pure data, no meaning
+      "method":        "annual" | "annual+monthly+daily",
+      "age":           int,                    # whole years of life at the as-of date
+      "as_of":         "YYYY-MM-DD",           # present only when derived from a date
+      # --- the annual place (top level); its ruler is the Lord of the Year ---
+      "profected_house": int,                  # 1-12; 1 = the rising sign (age 0, 12, 24…)
+      "profected_sign":  str,                  # the activated whole sign
+      "profected_sign_index": int,             # 0=Aries … 11=Pisces
+      "profected_sign_lon":   float,           # start longitude of that sign (index*30),
+                                               #   active zodiac — anchor for a sign-band highlight
+      "ruler":         name,                   # domicile ruler of the profected sign (Lord of the Year)
+      "ruler_lon":     float,                  # optional; the lord's natal longitude (positional)
+      "ruler_sign":    str,                    # optional; the lord's natal sign (positional)
+      "ruler_house":   int,                    # optional; natal house the lord occupies (positional)
+      # --- sub-periods (present only with an as-of date); same PeriodBlock shape,
+      #     ruler = Lord of the Month / Lord of the Day ---
+      "monthly":       PeriodBlock,            # 1/12 of the birthday→birthday year
+      "daily":         PeriodBlock,            # 1/12 of the month
+    }
+
+    PeriodBlock = {                            # a monthly/daily profection sub-period
+      "index":         int,                    # 0-11 within its parent period
+      "period_start":  "YYYY-MM-DD",           # inclusive start of this sub-period
+      "period_end":    "YYYY-MM-DD",           # start of the next sub-period
+      "profected_house": int, "profected_sign": str, "profected_sign_index": int,
+      "profected_sign_lon": float, "ruler": name,
+      "ruler_lon": float, "ruler_sign": str, "ruler_house": int,   # optional (positional)
     }
 
     Body = {
@@ -86,6 +117,34 @@ try:  # typed views are best-effort; the runtime value is always a plain dict
         east_point: float
         coasc: float
 
+    class PeriodBlock(TypedDict, total=False):
+        index: int
+        period_start: str
+        period_end: str
+        profected_house: int
+        profected_sign: str
+        profected_sign_index: int
+        profected_sign_lon: float
+        ruler: str
+        ruler_lon: float
+        ruler_sign: str
+        ruler_house: int
+
+    class Profection(TypedDict, total=False):
+        method: str
+        age: int
+        as_of: str
+        profected_house: int
+        profected_sign: str
+        profected_sign_index: int
+        profected_sign_lon: float
+        ruler: str
+        ruler_lon: float
+        ruler_sign: str
+        ruler_house: int
+        monthly: PeriodBlock
+        daily: PeriodBlock
+
     class ChartResult(TypedDict, total=False):
         zodiac: str
         ayanamsa: float | None
@@ -93,9 +152,10 @@ try:  # typed views are best-effort; the runtime value is always a plain dict
         cusps: list | None
         bodies: dict
         aspects: list
+        profections: Profection
         warnings: list
 except Exception:  # pragma: no cover
-    Body = Aspect = Angles = ChartResult = dict  # type: ignore
+    Body = Aspect = Angles = Profection = PeriodBlock = ChartResult = dict  # type: ignore
 
 
 def validate(chart: dict) -> list:
