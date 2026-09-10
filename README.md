@@ -52,6 +52,7 @@ deps) you still get houses, angles, and aspects, plus warnings for what's missin
 | **Aspects** | majors + optional minors, configurable orbs, applying/separating |
 | **Profections** | annual/monthly/daily profected place + sign + domicile ruler (Lord of the Year/Month/Day) — pure data, no interpretation |
 | **Firdaria** | Persian firdaria time-lords (sect-based order), major + sub periods with a dated timeline and the active lord(s) — pure data |
+| **Zodiacal Releasing** | Valens releasing from any of the seven Hermetic Lots (Fortune default), L1–L4 periods with Loosing-of-the-Bond and peak (angular-from-Fortune) flags — pure data |
 | **Zodiacs** | tropical **and** Vedic sidereal (Lahiri, Fagan-Bradley, Krishnamurti, Raman) + nakshatras/padas/rashis |
 | **Time & place** | timezone/DST/historical/LMT (IANA tzdata), Julian↔Gregorian calendar, offline coord→timezone, place geocoding |
 | **Output** | serializable chart dict, self-contained **SVG chart wheel**, zero-dep **HTTP API** |

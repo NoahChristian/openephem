@@ -7,6 +7,17 @@ All notable changes to **openephem** are documented here. The format follows
 ## [Unreleased]
 
 ### Added
+- **Zodiacal Releasing** (`zodiacal_releasing.py`): Vettius Valens' releasing as pure
+  computation — periods released in zodiacal order from a Hermetic Lot, each sign's
+  length its ruler's Lesser Years, cascading through levels L1–L4 (years → months → …).
+  The **Loosing of the Bond** (the leap to the sign opposite the level's origin after a
+  full circuit) and **peak** periods (signs angular — 1st/4th/7th/10th — from the Lot of
+  Fortune) are emitted as data flags, uninterpreted. All seven Hermetic Lots are
+  available via `hermetic_lots()` (Fortune, Spirit, Eros, Necessity, Courage, Victory,
+  Nemesis), sect-aware. `assemble()` gains `releasing_as_of=` and `releasing_lot=`
+  (default `"fortune"`) → a `zodiacal_releasing` block (schema `ZR`/`ZRPeriod`/`ZRLevel`);
+  peaks are reckoned from Fortune regardless of which Lot is released. Period lengths use
+  the tropical year (consistent with profections and firdaria). No interpretation.
 - **Firdaria** (`firdaria.py`): Persian firdaria (alfridaria) time-lords as pure
   computation — the sect-based 75-year sequence of planetary periods, each split into
   seven sub-periods (node periods subdivided too by default), with a dated timeline and

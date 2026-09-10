@@ -23,8 +23,25 @@ are `None` for an unknown birth time (houseless chart).
                                                #   profection age / as-of date was given
       "firdaria":    Firdaria | absent,        # optional; present only when a
                                                #   firdaria as-of date was given
+      "zodiacal_releasing": ZR | absent,       # optional; present only when a
+                                               #   releasing as-of date was given
       "warnings": [str],
     }
+
+    ZR = {                                     # Zodiacal Releasing (Valens) — pure data
+      "lot":       name,                       # which Hermetic Lot was released (default fortune)
+      "lot_sign":  str, "lot_lon": float,      # the Lot's sign / longitude
+      "peak_from": str,                        # sign the peak-angles are reckoned from (Fortune)
+      "age": int, "as_of": "YYYY-MM-DD",       # present with an as-of date
+      "current":   {"l1": ZRLevel, "l2": ZRLevel, "l3": ZRLevel, "l4": ZRLevel},
+      "timeline":  [ZRPeriod],                 # L1 periods, each with nested l2
+    }
+    ZRPeriod = {                               # one L1 period
+      "sign": str, "sign_index": int, "start": date, "end": date,
+      "age_start": float, "age_end": float, "peak": bool, "lb": bool,
+      "l2": [ZRLevel],                         # its level-2 sub-periods
+    }
+    ZRLevel = {"sign": str, "start": date, "end": date, "peak": bool, "lb": bool}
 
     Firdaria = {                               # Persian firdaria time-lords — pure data
       "sect":     "day" | "night",             # order depends on the sect
@@ -177,6 +194,34 @@ try:  # typed views are best-effort; the runtime value is always a plain dict
         current: dict
         timeline: list
 
+    class ZRLevel(TypedDict, total=False):
+        sign: str
+        start: str
+        end: str
+        peak: bool
+        lb: bool
+
+    class ZRPeriod(TypedDict, total=False):
+        sign: str
+        sign_index: int
+        start: str
+        end: str
+        age_start: float
+        age_end: float
+        peak: bool
+        lb: bool
+        l2: list
+
+    class ZR(TypedDict, total=False):
+        lot: str
+        lot_sign: str
+        lot_lon: float
+        peak_from: str
+        age: int
+        as_of: str
+        current: dict
+        timeline: list
+
     class ChartResult(TypedDict, total=False):
         zodiac: str
         ayanamsa: float | None
@@ -186,10 +231,12 @@ try:  # typed views are best-effort; the runtime value is always a plain dict
         aspects: list
         profections: Profection
         firdaria: Firdaria
+        zodiacal_releasing: ZR
         warnings: list
 except Exception:  # pragma: no cover
     Body = Aspect = Angles = Profection = PeriodBlock = dict  # type: ignore
     Firdaria = FirdariaPeriod = ChartResult = dict  # type: ignore
+    ZR = ZRPeriod = ZRLevel = dict  # type: ignore
 
 
 def validate(chart: dict) -> list:

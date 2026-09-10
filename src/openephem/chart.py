@@ -58,7 +58,8 @@ def assemble(resolved, *, house_system="Placidus", bodies=None,
              include_minor_aspects=False, star_orb=1.0,
              zodiac="tropical", ayanamsa="lahiri",
              profection_age=None, profection_as_of=None,
-             firdaria_as_of=None, firdaria_horizon=90.0) -> dict:
+             firdaria_as_of=None, firdaria_horizon=90.0,
+             releasing_as_of=None, releasing_lot="fortune") -> dict:
     from . import bodies as _B
     bodies = bodies or DEFAULT_BODIES
     warnings = list(resolved.warnings)
@@ -318,6 +319,40 @@ def assemble(resolved, *, house_system="Placidus", bodies=None,
                 jd_asof = float(firdaria_as_of)
             result["firdaria"] = _fir.firdaria(jd_birth_local, sect, jd_asof,
                                                horizon_years=firdaria_horizon)
+
+    # -- zodiacal releasing (Valens time-lords; released from a Hermetic Lot) --
+    if releasing_as_of is not None:
+        ang = result.get("angles") or {}
+        sun_p, moon_p = positions.get("Sun"), positions.get("Moon")
+        if ang.get("asc") is None or sun_p is None or moon_p is None or not result.get("cusps"):
+            warnings.append("zodiacal releasing omitted: needs a known birth time "
+                            "(Ascendant + Sun/Moon)")
+        else:
+            from . import profections as _prof
+            from . import zodiacal_releasing as _zr
+            sect = "day" if _house_of(sun_p["lon"], result["cusps"]) >= 7 else "night"
+
+            def _lon(nm):
+                pp = positions.get(nm)
+                return pp["lon"] if pp else 0.0
+
+            lots = _zr.hermetic_lots(sect, ang["asc"], sun_p["lon"], moon_p["lon"],
+                                     _lon("Mercury"), _lon("Venus"), _lon("Mars"),
+                                     _lon("Jupiter"), _lon("Saturn"))
+            chosen = lots.get(releasing_lot)
+            if chosen is None:
+                warnings.append(f"zodiacal releasing: unknown lot {releasing_lot!r} "
+                                f"(one of {', '.join(_zr.LOT_NAMES)})")
+            else:
+                jd_birth_local = jd + (resolved.offset_hours or 0.0) / 24.0
+                if isinstance(releasing_as_of, (list, tuple)):
+                    y, m, d = (list(releasing_as_of) + [1, 1])[:3]
+                    jd_asof = _prof._calendar_to_jd(int(y), int(m), int(d))
+                else:
+                    jd_asof = float(releasing_as_of)
+                result["zodiacal_releasing"] = _zr.releasing(
+                    chosen, jd_birth_local, jd_asof, lot_name=releasing_lot,
+                    fortune_lon=lots["fortune"])
 
     return result
 
