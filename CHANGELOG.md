@@ -21,8 +21,11 @@ All notable changes to **openephem** are documented here. The format follows
   computation — periods released in zodiacal order from a Hermetic Lot, each sign's
   length its ruler's Lesser Years, cascading through levels L1–L4 (years → months → …).
   The **Loosing of the Bond** (the leap to the sign opposite the level's origin after a
-  full circuit) and **peak** periods (signs angular — 1st/4th/7th/10th — from the Lot of
-  Fortune) are emitted as data flags, uninterpreted. All seven Hermetic Lots are
+  full circuit, flagged at every level — an L1 loosing is the deepest cut but needs ≈211 yr
+  so it never lands in a lifespan, while the L2 loosing ≈17½ yr into a long chapter is the
+  one that actually occurs), **peak** periods (signs angular — 1st/4th/7th/10th — from the
+  Lot of Fortune) and each period's **angularity** (`angular` = a peak / `succedent` /
+  `cadent`, from the Lot) are emitted as data flags, uninterpreted. All seven Hermetic Lots are
   available via `hermetic_lots()` (Fortune, Spirit, Eros, Necessity, Courage, Victory,
   Nemesis), sect-aware. `assemble()` gains `releasing_as_of=` and `releasing_lot=`
   (default `"fortune"`) → a `zodiacal_releasing` block (schema `ZR`/`ZRPeriod`/`ZRLevel`);

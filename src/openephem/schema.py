@@ -55,10 +55,13 @@ are `None` for an unknown birth time (houseless chart).
     }
     ZRPeriod = {                               # one L1 period
       "sign": str, "sign_index": int, "start": date, "end": date,
-      "age_start": float, "age_end": float, "peak": bool, "lb": bool,
+      "age_start": float, "age_end": float, "peak": bool,
+      "angularity": "angular" | "succedent" | "cadent",   # relation to the Lot (peak == angular)
+      "lb": bool,                              # loosing of the bond (flagged at every level)
       "l2": [ZRLevel],                         # its level-2 sub-periods
     }
-    ZRLevel = {"sign": str, "start": date, "end": date, "peak": bool, "lb": bool}
+    ZRLevel = {"sign": str, "start": date, "end": date, "peak": bool,
+               "angularity": "angular" | "succedent" | "cadent", "lb": bool}
 
     Firdaria = {                               # Persian firdaria time-lords — pure data
       "sect":     "day" | "night",             # order depends on the sect

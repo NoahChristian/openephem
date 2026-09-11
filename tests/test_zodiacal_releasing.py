@@ -98,6 +98,18 @@ def test_peaks_reckoned_from_fortune():
         assert b["peak"] == (b["sign_index"] in peak_signs)
 
 
+def test_angularity_trichotomy():
+    # Fortune in Cancer -> angular Cancer/Libra/Capricorn/Aries, succedent the next set, etc.
+    r = releasing(5.0, jd(2000, 1, 1), horizon_years=30, fortune_lon=95.0)  # Cancer
+    cancer = SIGNS.index("Cancer")
+    expect = ("angular", "succedent", "cadent")
+    for b in r["timeline"]:
+        assert b["angularity"] == expect[(b["sign_index"] - cancer) % 3]
+        assert (b["angularity"] == "angular") == b["peak"]        # peak == angular
+        for s in b["l2"]:                                         # same rule at level 2
+            assert s["angularity"] == expect[(s["sign_index"] - cancer) % 3]
+
+
 def test_current_path_l1_to_l4():
     r = releasing(310.0, jd(1970, 9, 14), jd(2026, 6, 1), horizon_years=90,
                   lot_name="fortune", fortune_lon=310.0)

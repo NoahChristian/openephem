@@ -12,11 +12,17 @@ zodiac to fill the parent period.
     Lesser Years by sign:  Ari 15  Tau 8  Gem 20  Cnc 25  Leo 19  Vir 20
                            Lib 8   Sco 15 Sag 12  Cap 27  Aqu 30  Pis 12   (Σ = 211)
 
-Two features of the technique are marked as data (not interpreted):
+Three features of the technique are marked as data (not interpreted):
   * **Loosing of the Bond (LB):** when a level's sub-periods complete a full circuit of
     the zodiac and the parent period still has time left, the chain "looses" and leaps to
-    the sign opposite the level's origin, continuing from there.
+    the sign opposite the level's origin, continuing from there. Flagged at *every* level:
+    an L1 loosing is the deepest cut but needs a full L1 circuit (≈ 211 years, so it never
+    lands inside a human lifespan); the L2 loosing — ≈ 17½ years into a long chapter — is the
+    one that actually occurs in a life, and L3/L4 loosings recur inside their sub-periods.
   * **Peak periods:** sub-periods whose sign is angular (1st/10th/7th/4th) from the Lot.
+  * **Angularity:** every period's relation to the Lot — ``angular`` (= a peak),
+    ``succedent`` (2nd/5th/8th/11th) or ``cadent`` (3rd/6th/9th/12th). ``peak`` is kept as
+    the boolean ``angularity == "angular"`` for backward compatibility.
 
 This module computes the periods, their signs, and those flags. It assigns no meaning.
 The exact LB / peak conventions vary between authors — see the module tests and README.
@@ -108,6 +114,9 @@ def releasing(lot_lon: float, jd_birth: float, jd_asof: float | None = None,
     def peak(sign):
         return sign in angles
 
+    def angularity(sign):                    # angular(=peak) / succedent / cadent from the Lot
+        return ("angular", "succedent", "cadent")[(sign - peak_ref) % 3]
+
     l1_raw = _release(lot_idx, horizon_years * YEAR, YEAR)
     timeline = []
     t = jd_birth
@@ -117,13 +126,15 @@ def releasing(lot_lon: float, jd_birth: float, jd_asof: float | None = None,
         c = start1
         for s2, len2, lb2 in _release(s1, len1, YEAR / 12.0):
             l2.append({"sign": SIGNS[s2], "sign_index": s2, "start": _iso(c),
-                       "end": _iso(c + len2), "peak": peak(s2), "lb": lb2})
+                       "end": _iso(c + len2), "peak": peak(s2),
+                       "angularity": angularity(s2), "lb": lb2})
             c += len2
         timeline.append({"sign": SIGNS[s1], "sign_index": s1,
                          "start": _iso(start1), "end": _iso(end1),
                          "age_start": round((start1 - jd_birth) / YEAR, 2),
                          "age_end": round((end1 - jd_birth) / YEAR, 2),
-                         "peak": peak(s1), "lb": lb1, "l2": l2})
+                         "peak": peak(s1), "angularity": angularity(s1),
+                         "lb": lb1, "l2": l2})
         t = end1
 
     result: dict = {"lot": lot_name, "lot_sign": SIGNS[lot_idx], "lot_lon": round(lot_lon, 4),
@@ -144,7 +155,8 @@ def releasing(lot_lon: float, jd_birth: float, jd_asof: float | None = None,
             t += len1
         if cur1:
             s1, a, b = cur1
-            path["l1"] = {"sign": SIGNS[s1], "start": _iso(a), "end": _iso(b), "peak": peak(s1)}
+            path["l1"] = {"sign": SIGNS[s1], "start": _iso(a), "end": _iso(b),
+                          "peak": peak(s1), "angularity": angularity(s1)}
             # descend levels 2..4
             parent_sign, parent_start, parent_len, unit = s1, a, b - a, YEAR / 12.0
             for lvl in ("l2", "l3", "l4"):
@@ -152,7 +164,7 @@ def releasing(lot_lon: float, jd_birth: float, jd_asof: float | None = None,
                 for s, ln, lb in _release(parent_sign, parent_len, unit):
                     if c <= jd_asof < c + ln:
                         path[lvl] = {"sign": SIGNS[s], "start": _iso(c), "end": _iso(c + ln),
-                                     "peak": peak(s), "lb": lb}
+                                     "peak": peak(s), "angularity": angularity(s), "lb": lb}
                         parent_sign, parent_start, parent_len = s, c, ln
                         unit /= 12.0
                         break
