@@ -6,7 +6,19 @@ All notable changes to **openephem** are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-09-13
+
 ### Added
+- **Vedic time-lords & divisional charts** (`vimshottari.py`, `varga.py`): the
+  **Vimśottarī daśā** as pure computation — keyed to the Moon's sidereal nakṣatra, with the
+  balance of the first Mahādaśā at birth and the nested Mahā / Antar / Pratyantar (and
+  deeper) periods, each with dated timelines and the active lords for a date. `assemble()`
+  gains `vimshottari_as_of=` (plus `vimshottari_horizon=`, `vimshottari_year=`,
+  `vimshottari_levels=`) → a `vimshottari` block (schema `Vimshottari` / `MahaDasha` /
+  `DashaPeriod`); each daśā lord is enriched with its natal placement. **Vārga** (divisional
+  / aṃśa) charts re-map each body's sidereal longitude to its divisional sign —
+  `varga_sign()`, `varga_longitude()`, `varga_chart()` over a rule registry (the everyday
+  set ships; the classical Ṣoḍaśavarga slots in beside it). No interpretation.
 - **Decennials** (`decennials.py`): Vettius Valens' decennial time-lords as pure
   computation — the seven classical planets rule in turn, each general period a fixed
   **10 years 9 months** (their minor years sum to 129 months), sub-divided into seven
@@ -94,4 +106,6 @@ Initial public release.
 - CI gates: ruff (lint) + mypy (types) + pytest with an 85% coverage gate on the
   pure-computation core, on Python 3.10–3.13 (Linux) and 3.12 (Windows).
 
+[Unreleased]: https://github.com/NoahChristian/openephem/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/NoahChristian/openephem/releases/tag/v0.2.0
 [0.1.0]: https://github.com/NoahChristian/openephem/releases/tag/v0.1.0

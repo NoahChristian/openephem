@@ -54,6 +54,8 @@ deps) you still get houses, angles, and aspects, plus warnings for what's missin
 | **Firdaria** | Persian firdaria time-lords (sect-based order), major + sub periods with a dated timeline and the active lord(s) — pure data |
 | **Zodiacal Releasing** | Valens releasing from any of the seven Hermetic Lots (Fortune default), L1–L4 periods with Loosing-of-the-Bond and peak (angular-from-Fortune) flags — pure data |
 | **Decennials** | Valens decennial time-lords — seven 10y-9m general periods (Chaldean order from a start planet, default the Lot of Fortune's ruler), each sub-divided into planetary minor-year sub-periods — pure data |
+| **Vimśottarī daśā** | Vedic Moon-nakṣatra time-lords — balance at birth + nested Mahā/Antar/Pratyantar (and deeper) periods with dated timelines and the active lords — pure data |
+| **Vārga charts** | divisional (aṃśa) charts re-mapping each body's sidereal longitude to its divisional sign (D-9 navāṃśa, etc.) over an extensible rule registry — pure data |
 | **Zodiacs** | tropical **and** Vedic sidereal (Lahiri, Fagan-Bradley, Krishnamurti, Raman) + nakshatras/padas/rashis |
 | **Time & place** | timezone/DST/historical/LMT (IANA tzdata), Julian↔Gregorian calendar, offline coord→timezone, place geocoding |
 | **Output** | serializable chart dict, self-contained **SVG chart wheel**, zero-dep **HTTP API** |
