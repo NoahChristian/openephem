@@ -27,7 +27,34 @@ are `None` for an unknown birth time (houseless chart).
                                                #   releasing as-of date was given
       "decennials":  Decennials | absent,      # optional; present only when a
                                                #   decennials as-of date was given
+      "vimshottari": Vimshottari | absent,     # optional; present only when a
+                                               #   vimshottari as-of date was given
       "warnings": [str],
+    }
+
+    Vimshottari = {                            # Vimśottarī daśā (Vedic time-lords) — pure data
+      "system":   "vimshottari",
+      "ayanamsa": {"system": name, "value": float},   # ayanamsa that fixed the nakṣatra
+      "moon_nakshatra": {"index": int, "name": str, "pada": int, "lord": name},
+      "balance":  {"lord": name, "years": float},      # balance of the first Mahādaśā at birth
+      "lords":    {name: {"lon": float, "sign": str, "house": int}},  # each daśā lord's natal
+                                               #   placement (positional; house only with cusps)
+      "age": int, "as_of": "YYYY-MM-DD",       # present with an as-of date
+      "current":  {"maha": name, "antar": name, "pratyantar": name,
+                   "maha_start": date, "maha_end": date,
+                   "antar_start": date, "antar_end": date,
+                   "pratyantar_start": date, "pratyantar_end": date},
+      "timeline": [MahaDasha],                 # Mahādaśā periods, in order (first = balance)
+    }
+    MahaDasha = {
+      "ruler":     name,                       # the Mahādaśā lord (a graha incl. Rāhu/Ketu)
+      "start": date, "end": date,              # ISO dates
+      "age_start": float, "age_end": float,
+      "subs": [DashaPeriod],                   # Antardaśā sub-periods (9 when whole)
+    }
+    DashaPeriod = {                            # a sub-period at any level, nested `levels` deep
+      "ruler": name, "start": date, "end": date,
+      "subs": [DashaPeriod],                   # present until the deepest level (Antar→Pratyantar→…)
     }
 
     Decennials = {                             # Valens decennial time-lords — pure data
@@ -257,6 +284,25 @@ try:  # typed views are best-effort; the runtime value is always a plain dict
         current: dict
         timeline: list
 
+    class MahaDasha(TypedDict, total=False):
+        ruler: str
+        start: str
+        end: str
+        age_start: float
+        age_end: float
+        subs: list
+
+    class Vimshottari(TypedDict, total=False):
+        system: str
+        ayanamsa: dict
+        moon_nakshatra: dict
+        balance: dict
+        lords: dict
+        age: int
+        as_of: str
+        current: dict
+        timeline: list
+
     class ChartResult(TypedDict, total=False):
         zodiac: str
         ayanamsa: float | None
@@ -268,12 +314,14 @@ try:  # typed views are best-effort; the runtime value is always a plain dict
         firdaria: Firdaria
         zodiacal_releasing: ZR
         decennials: Decennials
+        vimshottari: Vimshottari
         warnings: list
 except Exception:  # pragma: no cover
     Body = Aspect = Angles = Profection = PeriodBlock = dict  # type: ignore
     Firdaria = FirdariaPeriod = ChartResult = dict  # type: ignore
     ZR = ZRPeriod = ZRLevel = dict  # type: ignore
     Decennials = DecennialPeriod = dict  # type: ignore
+    Vimshottari = MahaDasha = dict  # type: ignore
 
 
 def validate(chart: dict) -> list:

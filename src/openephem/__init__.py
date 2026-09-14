@@ -36,7 +36,9 @@ from . import (  # noqa: F401 — submodule access (openephem.houses, ...)
     schema,
     service,
     timeplace,
+    varga,
     vedic,
+    vimshottari,
     zodiacal_releasing,
 )
 from .bodies import available_bodies  # noqa: F401 — the master body list
@@ -48,5 +50,5 @@ __all__ = [
     "aspects", "houses", "vedic", "timeplace", "chart", "service", "schema",
     "derived", "returns", "bodies", "planets_skyfield", "asteroids_skyfield",
     "hypothetical", "fixed_stars", "fetch_kernels", "profections", "firdaria",
-    "zodiacal_releasing", "decennials",
+    "zodiacal_releasing", "decennials", "vimshottari", "varga",
 ]

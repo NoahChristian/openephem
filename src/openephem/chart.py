@@ -60,7 +60,9 @@ def assemble(resolved, *, house_system="Placidus", bodies=None,
              profection_age=None, profection_as_of=None,
              firdaria_as_of=None, firdaria_horizon=90.0,
              releasing_as_of=None, releasing_lot="fortune",
-             decennials_as_of=None, decennials_start=None) -> dict:
+             decennials_as_of=None, decennials_start=None,
+             vimshottari_as_of=None, vimshottari_horizon=120.0,
+             vimshottari_year=None, vimshottari_levels=3) -> dict:
     from . import bodies as _B
     bodies = bodies or DEFAULT_BODIES
     warnings = list(resolved.warnings)
@@ -387,6 +389,65 @@ def assemble(resolved, *, house_system="Placidus", bodies=None,
                 else:
                     jd_asof = float(decennials_as_of)
                 result["decennials"] = _dec.decennials(start_planet, jd_birth_local, jd_asof)
+
+    # -- vimshottari dasha (Vedic time-lords; keyed to the Moon's sidereal nakshatra) --
+    if vimshottari_as_of is not None:
+        moon_p = positions.get("Moon")
+        if moon_p is None:
+            warnings.append("vimshottari omitted: needs the Moon among the computed bodies")
+        else:
+            from . import profections as _prof
+            from . import vimshottari as _vim
+            if (result.get("angles") or {}).get("asc") is None:
+                warnings.append("vimshottari: birth time unknown — the dasha balance is "
+                                "sensitive to the Moon's exact position")
+            # the nakshatra is sidereal: a sidereal chart already shifted the Moon, otherwise
+            # convert the tropical Moon with the chosen ayanamsa
+            if result.get("zodiac") == "sidereal":
+                moon_sid = moon_p["lon"]
+            else:
+                moon_sid = _vedic.to_sidereal(moon_p["lon"], jd, ayanamsa)
+            jd_birth_local = jd + (resolved.offset_hours or 0.0) / 24.0
+            if isinstance(vimshottari_as_of, (list, tuple)):
+                y, m, d = (list(vimshottari_as_of) + [1, 1])[:3]
+                jd_asof = _prof._calendar_to_jd(int(y), int(m), int(d))
+            else:
+                jd_asof = float(vimshottari_as_of)
+            vim = _vim.vimshottari(moon_sid, jd_birth_local, jd_asof,
+                                   horizon_years=vimshottari_horizon,
+                                   year_length=(vimshottari_year or _vim.YEAR),
+                                   levels=vimshottari_levels)
+            # record which ayanamsa fixed the nakshatra (a tropical chart has no ayanamsa field)
+            vim["ayanamsa"] = {"system": ayanamsa,
+                               "value": round(_vedic.ayanamsa(jd, ayanamsa), 6)}
+
+            # natal placement of each daśā lord (positional data, not interpretation), in the
+            # chart's active zodiac — Rāhu = the north node, Ketu = its opposite point.
+            def _place(lon):
+                if lon is None:
+                    return None
+                lon = float(lon) % 360.0
+                d = {"lon": round(lon, 4), "sign": _SIGNS[int(lon // 30) % 12]}
+                if result.get("cusps"):
+                    d["house"] = _house_of(lon, result["cusps"])
+                return d
+
+            node = positions.get("TrueNode") or positions.get("MeanNode")
+            node_lon = node["lon"] if node else None
+            lords = {}
+            for g in _vim.SEQUENCE:
+                if g == "Rahu":
+                    pl = _place(node_lon)
+                elif g == "Ketu":
+                    pl = _place(node_lon + 180.0 if node_lon is not None else None)
+                else:
+                    bp = positions.get(g)
+                    pl = _place(bp["lon"] if bp else None)
+                if pl:
+                    lords[g] = pl
+            if lords:
+                vim["lords"] = lords
+            result["vimshottari"] = vim
 
     return result
 

@@ -125,6 +125,8 @@ def geocode(query: str, provider: str = "nominatim", api_key: str | None = None,
             user_agent: str = "elpis-astrology", timeout: float = 10.0):
     """Place string -> (lat, lon, resolved_address). Default = free OSM Nominatim
     (1 req/s policy, set a real user_agent). provider='google' needs api_key."""
+    # Note: there may be slight variations to other software, open source or otherwise,
+    # re: placements due to slight variations in the lookup atlas.
     try:
         from geopy.geocoders import GoogleV3, Nominatim
     except ImportError as exc:
