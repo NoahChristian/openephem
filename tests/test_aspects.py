@@ -61,6 +61,65 @@ def test_between_same_name_stays_distinct():
     assert res[0].chart_a == "natal" and res[0].chart_b == "transit"
 
 
+def _chart(bodies):
+    return {"bodies": bodies}
+
+
+def test_cross_aspects_flat_5deg_default():
+    import openephem
+    # conjunction at 6° separation: within the natal 8° orb but OUTSIDE the flat 5° default
+    inner = _chart({"Venus": {"lon": 0.0}})
+    outer = _chart({"Mars": {"lon": 6.0}})
+    assert openephem.cross_aspects(inner, outer) == []
+    # 4° separation is within 5°
+    r = openephem.cross_aspects(inner, _chart({"Mars": {"lon": 4.0}}))
+    assert len(r) == 1 and r[0]["aspect"] == "conjunction"
+    # widen the flat orb -> the 6° conjunction reappears
+    assert aspects.cross_aspects(inner, outer, orb=8.0)[0]["aspect"] == "conjunction"
+
+
+def test_cross_aspects_per_aspect_override():
+    inner, outer = _chart({"Venus": {"lon": 0.0}}), _chart({"Mars": {"lon": 6.0}})
+    r = aspects.cross_aspects(inner, outer, orbs={"conjunction": 8.0})
+    assert r and r[0]["aspect"] == "conjunction"
+
+
+def test_cross_aspects_serialisation_and_labels():
+    r = aspects.cross_aspects(_chart({"Venus": {"lon": 0.0}}),
+                              _chart({"Mars": {"lon": 90.0}}))
+    assert len(r) == 1
+    a = r[0]
+    assert set(a) == {"a", "b", "aspect", "angle", "orb", "applying", "chart_a", "chart_b"}
+    assert a["a"] == "Venus" and a["b"] == "Mars"          # a = inner, b = outer
+    assert a["chart_a"] == "inner" and a["chart_b"] == "outer"
+    assert a["aspect"] == "square" and a["applying"] is None
+
+
+def test_cross_aspects_same_name_stays_distinct():
+    r = aspects.cross_aspects(_chart({"Sun": {"lon": 10.0}}),
+                              _chart({"Sun": {"lon": 190.0}}),
+                              label_a="natal", label_b="transit")
+    assert len(r) == 1 and r[0]["aspect"] == "opposition"
+    assert r[0]["a"] == "Sun" and r[0]["b"] == "Sun"
+    assert r[0]["chart_a"] == "natal" and r[0]["chart_b"] == "transit"
+
+
+def test_cross_aspects_no_luminary_bonus_by_default():
+    # Sun-Mars opposition at 6° orb: excluded under the flat 5° (no luminary bonus)...
+    inner, outer = _chart({"Sun": {"lon": 0.0}}), _chart({"Mars": {"lon": 186.0}})
+    assert aspects.cross_aspects(inner, outer) == []
+    # ...but a luminary bonus of 2 widens it to 7° and it reappears
+    r = aspects.cross_aspects(inner, outer, luminary_bonus=2.0)
+    assert r and r[0]["aspect"] == "opposition"
+
+
+def test_cross_aspects_minor_toggle():
+    inner, outer = _chart({"Venus": {"lon": 0.0}}), _chart({"Mars": {"lon": 30.0}})
+    assert aspects.cross_aspects(inner, outer) == []               # semisextile is minor
+    r = aspects.cross_aspects(inner, outer, include_minor=True)
+    assert r and r[0]["aspect"] == "semisextile"
+
+
 def test_derived_midpoints():
     from openephem import derived
     assert abs(derived.lon_midpoint(350.0, 10.0) - 0.0) < 1e-9      # wraps: near midpoint is 0

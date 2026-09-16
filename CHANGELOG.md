@@ -6,6 +6,18 @@ All notable changes to **openephem** are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-09-15
+
+### Added
+- **Cross-chart (synastry / transit-to-natal) aspects** — `cross_aspects(chart_a, chart_b,
+  …)`, a top-level convenience over the existing `aspects.between()` engine. Runs every body
+  of one chart dict against every body of the other (no within-chart pairs) and returns a
+  JSON-serialisable list matching `assemble()`'s `aspects` shape plus the source-chart labels
+  (`chart_a`/`chart_b`), so identical names (Sun vs Sun) stay distinct. The default orb is a
+  **flat 5° for every aspect** (synastry convention; per-aspect `orbs=` overrides and a
+  `luminary_bonus=` are available), rather than the per-aspect natal table. This is the data
+  ephemvis 0.5.0's bi-wheel and synastry-grid renderers draw.
+
 ## [0.2.0] — 2026-09-13
 
 ### Added
@@ -106,6 +118,7 @@ Initial public release.
 - CI gates: ruff (lint) + mypy (types) + pytest with an 85% coverage gate on the
   pure-computation core, on Python 3.10–3.13 (Linux) and 3.12 (Windows).
 
-[Unreleased]: https://github.com/NoahChristian/openephem/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/NoahChristian/openephem/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/NoahChristian/openephem/releases/tag/v0.3.0
 [0.2.0]: https://github.com/NoahChristian/openephem/releases/tag/v0.2.0
 [0.1.0]: https://github.com/NoahChristian/openephem/releases/tag/v0.1.0

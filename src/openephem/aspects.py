@@ -122,6 +122,43 @@ def between(bodies_a: dict, bodies_b: dict, include_minor: bool = False,
     return out
 
 
+def cross_aspects(chart_a: dict, chart_b: dict, *, orb: float = 5.0,
+                  orbs: dict | None = None, include_minor: bool = False,
+                  luminary_bonus: float = 0.0,
+                  label_a: str = "inner", label_b: str = "outer") -> list[dict]:
+    """Cross-chart (synastry / transit-to-natal) aspects between two chart dicts.
+
+    Pulls ``bodies`` from each ``assemble()``-shaped chart dict and runs every body of
+    ``chart_a`` against every body of ``chart_b`` via :func:`between` (no within-chart
+    pairs). Unlike :func:`find_aspects`, the default orb is a **flat ``orb`` degrees for
+    every aspect** (5° by default) rather than the per-aspect natal table — synastry
+    convention; pass ``orbs={aspect: deg}`` to override individual aspects, and
+    ``luminary_bonus`` (0 by default here) to widen orbs involving the Sun/Moon.
+
+    Returns a JSON-serialisable list of dicts matching ``assemble()``'s ``aspects``
+    shape plus the source-chart labels, tightest-orb first::
+
+        [{"a", "b", "aspect", "angle", "orb", "applying", "chart_a", "chart_b"}, ...]
+
+    ``a``/``chart_a`` name the ``chart_a`` (inner) body, ``b``/``chart_b`` the
+    ``chart_b`` (outer) body, so identical names (Sun vs Sun) stay distinct. For
+    applying/separating on a transit chart, give the moving chart real speeds and the
+    static chart speed 0 (or omit speeds for ``applying=None``)."""
+    bodies_a = chart_a.get("bodies") or {}
+    bodies_b = chart_b.get("bodies") or {}
+    table = dict(MAJOR)
+    if include_minor:
+        table.update(MINOR)
+    flat = {k: float(orb) for k in table}          # flat orb for every active aspect
+    if orbs:                                        # per-aspect overrides
+        flat.update({k: float(v) for k, v in orbs.items() if k in table})
+    found = between(bodies_a, bodies_b, include_minor=include_minor, orbs=flat,
+                    luminary_bonus=luminary_bonus, label_a=label_a, label_b=label_b)
+    return [{"a": a.a, "b": a.b, "aspect": a.aspect, "angle": a.angle,
+             "orb": round(a.orb, 3), "applying": a.applying,
+             "chart_a": a.chart_a, "chart_b": a.chart_b} for a in found]
+
+
 def _applying(ba, bb, la, lb, angle, dt=0.01):
     """Applying if the |orb| is decreasing. Needs both speeds; else None."""
     if not ba or not bb or "speed" not in ba or "speed" not in bb:
