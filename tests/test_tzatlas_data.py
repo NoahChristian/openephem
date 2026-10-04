@@ -19,6 +19,12 @@ def _have_tzdata():
         return False
 
 
+def _have_geo():
+    import importlib.util
+    return (_have_tzdata()
+            and importlib.util.find_spec("timezonefinder") is not None)
+
+
 # --------------------------------------------------------------------------- #
 # Loader / round-trip (inline examples — independent of what is bundled)
 # --------------------------------------------------------------------------- #
@@ -86,7 +92,8 @@ def _sample_points(r):
              sum(p[1] for p in r.polygon) / len(r.polygon))]
 
 
-@pytest.mark.skipif(not _have_tzdata(), reason="IANA tzdata not available")
+@pytest.mark.skipif(not _have_geo(),
+                    reason="needs tzdata + timezonefinder (openephem[geo]) for coord->zone lookup")
 def test_bundled_rules_are_additive():
     """Every bundled rule must CHANGE the offset default tzdata would give for at least one
     sampled point AND date in its window — a rule that merely echoes tzdata everywhere is
