@@ -6,6 +6,16 @@ All notable changes to **openephem** are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- **`tzatlas` rule-data layer.** `tzatlas.load_rules()` parses JSON rules into `AtlasRule`s and
+  `tzatlas.bundled_rules()` loads the rules shipped under `openephem/data/tzatlas/` — **opt-in**
+  (pass to `resolve(atlas=...)`; never applied on their own). A schema test
+  (`tests/test_tzatlas_data.py`) and a backzone cross-check (`tools/tzatlas_backzone_check.py`)
+  enforce that every bundled rule cites a primary source and is *additive* vs tzdata. No rules are
+  bundled yet: the well-documented US cases are already in tzdata, and the additive pre-1970
+  local-DST / standard-zone-boundary cases require archival primary sources (see
+  `data/tzatlas/README.md`).
+
 ## [0.4.0] — 2026-10-04
 
 ### Fixed

@@ -32,6 +32,8 @@ own vetted rules via `resolve(atlas=[...])`.
 
 from __future__ import annotations
 
+import importlib.resources as _res
+import json
 from dataclasses import dataclass, field
 from datetime import date, datetime
 
@@ -143,6 +145,70 @@ def match(rules, lat: float, lon: float, when: date | datetime) -> AtlasRule | N
         if r.applies(lat, lon, d):
             return r
     return None
+
+
+def _rule_from_dict(d: dict) -> AtlasRule:
+    """Build one AtlasRule from a plain dict (a JSON rule object).
+
+    Dates are ISO strings (``"YYYY-MM-DD"``). The region is either
+    ``"bbox": [min_lat, min_lon, max_lat, max_lon]`` or
+    ``"polygon": [[lat, lon], ...]``. An optional ``"source_url"`` is appended to the
+    required ``"source"`` citation. Unknown keys are ignored."""
+    source = d["source"]
+    if d.get("source_url"):
+        source = f"{source} <{d['source_url']}>"
+    bbox = tuple(d["bbox"]) if d.get("bbox") is not None else None
+    polygon = (tuple((float(a), float(b)) for a, b in d["polygon"])
+               if d.get("polygon") is not None else None)
+    return AtlasRule(
+        name=d["name"],
+        start=date.fromisoformat(d["start"]),
+        end=date.fromisoformat(d["end"]),
+        action=d["action"],
+        source=source,
+        bbox=bbox,  # type: ignore[arg-type]
+        polygon=polygon,
+        offset_hours=d.get("offset_hours"),
+        zone=d.get("zone"),
+        note=d.get("note", ""),
+        tags=tuple(d.get("tags", ())),
+    )
+
+
+def load_rules(data) -> list[AtlasRule]:
+    """Parse atlas rules from JSON into validated :class:`AtlasRule` objects.
+
+    ``data`` is a JSON string/bytes or an already-parsed object; the JSON is either a
+    list of rule objects or an object with a ``"rules"`` list (so a file can carry
+    ``"$schema"`` / notes alongside). Each rule is validated by ``AtlasRule`` (region,
+    dates, action, required source)."""
+    if isinstance(data, (str, bytes)):
+        data = json.loads(data)
+    if isinstance(data, dict):
+        data = data.get("rules", [])
+    return [_rule_from_dict(d) for d in data]
+
+
+def bundled_rules(*, tags: tuple[str, ...] | None = None) -> list[AtlasRule]:
+    """The atlas rules bundled with openephem (``openephem/data/tzatlas/*.json``).
+
+    These are **opt-in**: pass the list to ``resolve(atlas=...)``; openephem never
+    applies them on its own. Every bundled rule is tied to a primary source (statute,
+    ordinance, Federal Register order). ``tags`` optionally keeps only rules carrying
+    at least one of the given tags. Returns ``[]`` when nothing is bundled yet."""
+    root = _res.files("openephem").joinpath("data").joinpath("tzatlas")
+    out: list[AtlasRule] = []
+    try:
+        entries = sorted(root.iterdir(), key=lambda p: p.name)
+    except (FileNotFoundError, NotADirectoryError):
+        return out
+    for entry in entries:
+        if entry.name.endswith(".json"):
+            out.extend(load_rules(entry.read_text(encoding="utf-8")))
+    if tags:
+        want = set(tags)
+        out = [r for r in out if want & set(r.tags)]
+    return out
 
 
 def principal_city_warnings(tzname: str, when: date | datetime, *,

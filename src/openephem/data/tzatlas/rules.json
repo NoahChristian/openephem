@@ -1,0 +1,4 @@
+{
+  "note": "Bundled, opt-in tzatlas rules. EMPTY by design: every rule must cite a primary source (statute section, ordinance, or Federal Register / ICC / DOT order) and must be additive vs default tzdata. The well-documented US cases (Arizona MST, Indiana 1972-2006, Michigan's exemption, post-1980 western-Kansas county moves) are already in tzdata and do not belong here; the additive pre-1967 local-option-DST and pre-1970 standard-zone-boundary cases require archival primary sources. Add rules in the format documented in README.md.",
+  "rules": []
+}
