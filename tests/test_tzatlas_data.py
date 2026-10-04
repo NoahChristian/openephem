@@ -74,24 +74,39 @@ def test_bundled_rules_are_valid_and_sourced():
         assert (r.bbox is None) != (r.polygon is None)
 
 
+def _sample_points(r):
+    """Centroid + interior-ish corners of a rule's region (pulled slightly inward)."""
+    if r.bbox is not None:
+        a, b, c, d = r.bbox          # min_lat, min_lon, max_lat, max_lon
+        dlat, dlon = (c - a) * 0.05, (d - b) * 0.05
+        return [((a + c) / 2, (b + d) / 2), (a + dlat, b + dlon), (a + dlat, d - dlon),
+                (c - dlat, b + dlon), (c - dlat, d - dlon)]
+    assert r.polygon is not None
+    return [(sum(p[0] for p in r.polygon) / len(r.polygon),
+             sum(p[1] for p in r.polygon) / len(r.polygon))]
+
+
 @pytest.mark.skipif(not _have_tzdata(), reason="IANA tzdata not available")
 def test_bundled_rules_are_additive():
     """Every bundled rule must CHANGE the offset default tzdata would give for at least one
-    sampled point/date in its window — a rule that merely echoes tzdata is redundant (and the
-    well-handled cases belong in tzdata, not here)."""
+    sampled point AND date in its window — a rule that merely echoes tzdata everywhere is
+    redundant (and the well-handled cases belong in tzdata, not here). Region rules are sampled
+    at several points and in both winter and summer, since a correction may only show in part of
+    the region or season (e.g. a standard-zone fix shows in winter; a no-DST fix shows in summer)."""
     from openephem.timeplace import resolve
+    mid_year = None
     for r in ta.bundled_rules():
-        if r.bbox is not None:
-            lat = (r.bbox[0] + r.bbox[2]) / 2
-            lon = (r.bbox[1] + r.bbox[3]) / 2
-        else:
-            assert r.polygon is not None
-            lat = sum(p[0] for p in r.polygon) / len(r.polygon)
-            lon = sum(p[1] for p in r.polygon) / len(r.polygon)
-        when = r.start
-        base = resolve(date=(when.year, when.month, when.day), time=(12, 0),
-                       lat=lat, lon=lon)
-        over = resolve(date=(when.year, when.month, when.day), time=(12, 0),
-                       lat=lat, lon=lon, atlas=[r])
-        assert over.offset_hours != base.offset_hours or over.atlas_rule == r.name, (
-            f"bundled rule {r.name!r} is not additive at its own sample point")
+        mid_year = (r.start.year + (r.end.year - 1)) // 2
+        dates = [(r.start.year, r.start.month, r.start.day), (mid_year, 7, 15),
+                 (mid_year, 1, 15)]
+        additive = False
+        for lat, lon in _sample_points(r):
+            for ymd in dates:
+                base = resolve(date=ymd, time=(12, 0), lat=lat, lon=lon)
+                over = resolve(date=ymd, time=(12, 0), lat=lat, lon=lon, atlas=[r])
+                if over.offset_hours != base.offset_hours:
+                    additive = True
+                    break
+            if additive:
+                break
+        assert additive, f"bundled rule {r.name!r} is not additive anywhere in its region/window"

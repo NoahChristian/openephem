@@ -11,10 +11,13 @@ All notable changes to **openephem** are documented here. The format follows
   `tzatlas.bundled_rules()` loads the rules shipped under `openephem/data/tzatlas/` — **opt-in**
   (pass to `resolve(atlas=...)`; never applied on their own). A schema test
   (`tests/test_tzatlas_data.py`) and a backzone cross-check (`tools/tzatlas_backzone_check.py`)
-  enforce that every bundled rule cites a primary source and is *additive* vs tzdata. No rules are
-  bundled yet: the well-documented US cases are already in tzdata, and the additive pre-1970
-  local-DST / standard-zone-boundary cases require archival primary sources (see
-  `data/tzatlas/README.md`).
+  enforce that every bundled rule cites a primary source and is *additive* vs tzdata.
+- **First bundled rule: North Dakota on Central Standard Time, 1946–1966** (opt-in). Per the ICC
+  standard-time map in NBS Circular 406 and U.S. DOT order FR 2010-24376, most of ND was Central
+  (not Mountain) until the 1968 DOT order; ND also observed no summer DST then. The rule returns
+  CST (−6) year-round for the state, correcting tzdata on both sides (western ND wrongly Mountain;
+  eastern ND wrongly given Chicago's summer DST). The small SW-corner Mountain area is flagged, not
+  carved out. Apply with `resolve(atlas=openephem.tzatlas.bundled_rules())`.
 
 ## [0.4.0] — 2026-10-04
 

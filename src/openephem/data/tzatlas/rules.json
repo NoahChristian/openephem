@@ -1,4 +1,17 @@
 {
-  "note": "Bundled, opt-in tzatlas rules. EMPTY by design: every rule must cite a primary source (statute section, ordinance, or Federal Register / ICC / DOT order) and must be additive vs default tzdata. The well-documented US cases (Arizona MST, Indiana 1972-2006, Michigan's exemption, post-1980 western-Kansas county moves) are already in tzdata and do not belong here; the additive pre-1967 local-option-DST and pre-1970 standard-zone-boundary cases require archival primary sources. Add rules in the format documented in README.md.",
-  "rules": []
+  "note": "Bundled, opt-in tzatlas rules. Every rule cites a primary source (statute/ordinance/Federal Register/ICC/DOT order or an official standard-time map) and must be ADDITIVE vs default tzdata. Cases tzdata already handles (e.g. Indiana's 1938 Central status, already in America/Indiana/*) do not belong here. See README.md.",
+  "rules": [
+    {
+      "name": "North Dakota on Central Standard Time, 1946-1966",
+      "start": "1946-01-01",
+      "end": "1967-01-01",
+      "action": "offset",
+      "offset_hours": -6.0,
+      "bbox": [45.93, -104.06, 49.01, -96.55],
+      "source": "NBS Circular 406, 'Standard Time Throughout the World', Fig. 1 (ICC-defined U.S. standard-time-zone map: most of North Dakota shown in Central time); and U.S. DOT order FR 2010-24376 (29 Sep 2010), recounting the 1929 ICC Central extension and the 1968 DOT order moving ND's Missouri-River counties to Mountain time.",
+      "source_url": "https://www.govinfo.gov/app/details/GOVPUB-C13-28b0e7692d1c4ab71ebfbc45910af876",
+      "note": "North Dakota was in the CENTRAL standard zone and observed no summer DST in 1946-1966, so civil time was CST (-6) year-round. This corrects tzdata on BOTH sides: western ND (America/North_Dakota/{Center,New_Salem,Beulah} and America/Denver) is wrongly Mountain pre-1968, and eastern ND (America/Chicago) is wrongly given Chicago's summer DST (CDT). The southwesternmost corner was actually Mountain in this era (1929 ICC) -- a small fringe kept CST here by choice and flagged, not carved out. War time (1942-02 to 1945-09, when ND was CWT -5) and 1967 (Uniform Time Act, when ND observed DST) are intentionally left to tzdata. bbox is North Dakota's bounding rectangle; negligible overreach along the wiggly Red River into western Minnesota, which was also Central.",
+      "tags": ["us-zone-boundary", "us-dst", "north-dakota", "provisional"]
+    }
+  ]
 }
