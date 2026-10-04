@@ -149,10 +149,17 @@ def test_atlas_offset_rule_and_fixed_tz_precedence():
 # births). Each exercises a different tzdata path through the pre-1970 logic.
 # --------------------------------------------------------------------------- #
 CITIES = {
-    "Flint, MI":   (43.0125, -83.6875, "America/Detroit"),
-    "Omaha, NE":   (41.2565, -95.9345, "America/Chicago"),
-    "Agate, CO":   (39.4622, -103.9416, "America/Denver"),
-    "Seattle, WA": (47.6062, -122.3321, "America/Los_Angeles"),
+    "Flint, MI":        (43.0125, -83.6875, "America/Detroit"),
+    "Omaha, NE":        (41.2565, -95.9345, "America/Chicago"),
+    "Agate, CO":        (39.4622, -103.9416, "America/Denver"),
+    "Seattle, WA":      (47.6062, -122.3321, "America/Los_Angeles"),
+    # NW Indiana is on Central time (America/Chicago), unlike the rest of the state.
+    "Gary, IN":         (41.5934, -87.3464, "America/Chicago"),
+    # Indiana sat on Eastern standard with NO daylight time from 1972 until 2006.
+    "Indianapolis, IN": (39.7684, -86.1581, "America/Indiana/Indianapolis"),
+    "Bloomington, IN":  (39.1653, -86.5264, "America/Indiana/Indianapolis"),
+    # Arizona has observed Mountain standard time year-round (no DST) since 1968.
+    "Tempe, AZ":        (33.4255, -111.9400, "America/Phoenix"),
 }
 PRE_DST = "pre-1967 US daylight time"
 PRE_NOTE = "pre-1967 US date"
@@ -179,6 +186,22 @@ CROSS_ZONE = [
     ("Omaha, NE", (1990, 7, 15), -5.0, 1.0, None),
     ("Agate, CO", (1990, 7, 15), -6.0, 1.0, None),
     ("Seattle, WA", (1990, 7, 15), -7.0, 1.0, None),
+    # Gary (NW Indiana) is on Central time -> inherits Chicago's 1955 DST
+    ("Gary, IN", (1955, 7, 15), -5.0, 1.0, PRE_DST),
+    ("Gary, IN", (1990, 7, 15), -5.0, 1.0, None),
+    # Indianapolis on Eastern STANDARD, no DST in 1955 -> principal-city note only
+    ("Indianapolis, IN", (1955, 7, 15), -5.0, 0.0, PRE_NOTE),
+    # 1990: Indiana's no-DST-on-Eastern era. Offset -5 looks like CDT but is EST and
+    # is authoritative post-1970, so it must stay SILENT (not flagged).
+    ("Indianapolis, IN", (1990, 7, 15), -5.0, 0.0, None),
+    # 2007: after Indiana adopted statewide DST (2006) -> modern EDT, silent
+    ("Indianapolis, IN", (2007, 7, 15), -4.0, 1.0, None),
+    # Bloomington shares the Indianapolis zone (Monroe Co. follows Indy)
+    ("Bloomington, IN", (1955, 7, 15), -5.0, 0.0, PRE_NOTE),
+    # Arizona on Mountain standard, no DST in 1955 -> principal-city note only
+    ("Tempe, AZ", (1955, 7, 15), -7.0, 0.0, PRE_NOTE),
+    # Arizona's permanent MST: authoritative post-1970, stays SILENT
+    ("Tempe, AZ", (1990, 7, 15), -7.0, 0.0, None),
 ]
 
 needs_all_zones = pytest.mark.skipif(

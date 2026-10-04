@@ -6,6 +6,8 @@ All notable changes to **openephem** are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-10-04
+
 ### Fixed
 - **Pre-1970 times no longer silently inherit a principal city's history.** IANA tzdata
   only guarantees accuracy from 1970; before that, a zone's rules are its principal city's
@@ -22,6 +24,8 @@ All notable changes to **openephem** are documented here. The format follows
   overrides (`AtlasRule`: bbox or polygon; action `standard` / `offset` / `zone`) checked
   before tzdata. Rules require a citation; none are bundled yet.
 - `ResolvedMoment.dst_hours` and `ResolvedMoment.atlas_rule`.
+- `AtlasRule` and the `tzatlas` module are exported at the top level (`from openephem import
+  AtlasRule, tzatlas`) alongside `resolve`/`assemble`.
 
 ## [0.3.0] — 2026-09-15
 
@@ -135,7 +139,8 @@ Initial public release.
 - CI gates: ruff (lint) + mypy (types) + pytest with an 85% coverage gate on the
   pure-computation core, on Python 3.10–3.13 (Linux) and 3.12 (Windows).
 
-[Unreleased]: https://github.com/NoahChristian/openephem/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/NoahChristian/openephem/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/NoahChristian/openephem/releases/tag/v0.4.0
 [0.3.0]: https://github.com/NoahChristian/openephem/releases/tag/v0.3.0
 [0.2.0]: https://github.com/NoahChristian/openephem/releases/tag/v0.2.0
 [0.1.0]: https://github.com/NoahChristian/openephem/releases/tag/v0.1.0
