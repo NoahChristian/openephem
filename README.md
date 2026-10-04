@@ -57,7 +57,7 @@ deps) you still get houses, angles, and aspects, plus warnings for what's missin
 | **Vimśottarī daśā** | Vedic Moon-nakṣatra time-lords — balance at birth + nested Mahā/Antar/Pratyantar (and deeper) periods with dated timelines and the active lords — pure data |
 | **Vārga charts** | divisional (aṃśa) charts re-mapping each body's sidereal longitude to its divisional sign (D-9 navāṃśa, etc.) over an extensible rule registry — pure data |
 | **Zodiacs** | tropical **and** Vedic sidereal (Lahiri, Fagan-Bradley, Krishnamurti, Raman) + nakshatras/padas/rashis |
-| **Time & place** | timezone/DST/historical/LMT (IANA tzdata), Julian↔Gregorian calendar, offline coord→timezone, place geocoding |
+| **Time & place** | timezone/DST/historical/LMT (IANA tzdata), pre-1970 principal-city warnings, `dst=` override, sourced historical `tzatlas` rules, Julian↔Gregorian calendar, offline coord→timezone, place geocoding |
 | **Output** | serializable chart dict, self-contained **SVG chart wheel**, zero-dep **HTTP API** |
 
 ## Validation — parity vs swisseph: **PASS (1500 BC – 2500 AD)**

@@ -6,6 +6,27 @@ All notable changes to **openephem** are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-10-04
+
+### Fixed
+- **Pre-1970 times no longer silently inherit a principal city's history.** IANA tzdata
+  only guarantees accuracy from 1970; before that, a zone's rules are its principal city's
+  (`America/Chicago` = Chicago). Chicago kept daylight time 1946–1966 while much of the
+  Midwest did not, so e.g. a central-Kansas location in July 1955 resolved to CDT (UTC−5)
+  instead of CST (UTC−6) — a one-hour error. `resolve()` now emits a warning whenever a US zone applies
+  DST before the Uniform Time Act took effect (1967-04-30), and a general warning for any
+  coordinate-derived zone before 1970.
+
+### Added
+- `resolve(dst=...)` — `False` forces standard time (strips any tzdata DST), `True` forces
+  daylight time, `None` (default) trusts tzdata.
+- `tzatlas` module + `resolve(atlas=[...])` — sourced, region- and date-bounded historical
+  overrides (`AtlasRule`: bbox or polygon; action `standard` / `offset` / `zone`) checked
+  before tzdata. Rules require a citation; none are bundled yet.
+- `ResolvedMoment.dst_hours` and `ResolvedMoment.atlas_rule`.
+- `AtlasRule` and the `tzatlas` module are exported at the top level (`from openephem import
+  AtlasRule, tzatlas`) alongside `resolve`/`assemble`.
+
 ## [0.3.0] — 2026-09-15
 
 ### Added
@@ -118,7 +139,8 @@ Initial public release.
 - CI gates: ruff (lint) + mypy (types) + pytest with an 85% coverage gate on the
   pure-computation core, on Python 3.10–3.13 (Linux) and 3.12 (Windows).
 
-[Unreleased]: https://github.com/NoahChristian/openephem/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/NoahChristian/openephem/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/NoahChristian/openephem/releases/tag/v0.4.0
 [0.3.0]: https://github.com/NoahChristian/openephem/releases/tag/v0.3.0
 [0.2.0]: https://github.com/NoahChristian/openephem/releases/tag/v0.2.0
 [0.1.0]: https://github.com/NoahChristian/openephem/releases/tag/v0.1.0
