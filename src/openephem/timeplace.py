@@ -28,8 +28,11 @@ from __future__ import annotations
 import math
 import re
 from dataclasses import dataclass, field
+from datetime import date as _date
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
+
+from . import tzatlas
 
 # --------------------------------------------------------------------------- #
 # Calendar -> Julian Day (Meeus, ch. 7)
@@ -86,9 +89,10 @@ def _parse_fixed_offset(tz) -> float | None:
     return None
 
 
-def utc_offset_hours(year, month, day, hour, minute, second, tzname, fold=0):
-    """Offset (local - UTC, in hours) for a local civil moment in an IANA zone.
-    Returns (offset_hours, warnings). Detects DST ambiguity (fold) and gaps."""
+def zone_offset(year, month, day, hour, minute, second, tzname, fold=0):
+    """Offset for a local civil moment in an IANA zone, split into parts.
+    Returns (offset_hours, dst_hours, warnings) where dst_hours is the DST
+    component tzdata applied (0 on standard time). Detects folds and gaps."""
     warnings: list[str] = []
     zi = ZoneInfo(tzname)
     base = datetime(year, month, day, hour, minute, int(second))
@@ -99,12 +103,23 @@ def utc_offset_hours(year, month, day, hour, minute, second, tzname, fold=0):
             f"ambiguous local time (DST fold) - both offsets exist; using fold={fold}")
     chosen = dt1 if fold else dt0
     off = chosen.utcoffset()
+    dst = chosen.dst()
     # Gap (nonexistent) detection: round-trip through UTC and back.
     rt = chosen.astimezone(timezone.utc).astimezone(zi)
     if (rt.hour, rt.minute) != (base.hour, base.minute):
         warnings.append(
             "nonexistent local time (DST spring-forward gap) - offset approximated")
-    return off.total_seconds() / 3600.0, warnings
+    assert off is not None
+    dst_h = dst.total_seconds() / 3600.0 if dst is not None else 0.0
+    return off.total_seconds() / 3600.0, dst_h, warnings
+
+
+def utc_offset_hours(year, month, day, hour, minute, second, tzname, fold=0):
+    """Offset (local - UTC, in hours) for a local civil moment in an IANA zone.
+    Returns (offset_hours, warnings). Detects DST ambiguity (fold) and gaps."""
+    off, _dst, warnings = zone_offset(year, month, day, hour, minute, second,
+                                      tzname, fold)
+    return off, warnings
 
 
 # --------------------------------------------------------------------------- #
@@ -158,13 +173,23 @@ class ResolvedMoment:
     time_known: bool
     address: str | None
     warnings: list[str] = field(default_factory=list)
+    dst_hours: float = 0.0          # DST component included in offset_hours
+    atlas_rule: str | None = None   # name of the tzatlas rule applied, if any
 
 
 def resolve(*, date, time=None, place=None, lat=None, lon=None, tz=None,
             calendar="auto", fold=0, provider="nominatim", api_key=None,
-            user_agent="elpis-astrology") -> ResolvedMoment:
+            user_agent="elpis-astrology", dst=None, atlas=None) -> ResolvedMoment:
     """date=(Y,M,D); time=(H,M[,S]) or None; give place OR lat/lon; tz optional
-    (IANA name / fixed offset / None to derive from coords)."""
+    (IANA name / fixed offset / None to derive from coords).
+
+    dst: None = trust the zone's rules; False = force standard time (strip any
+    DST tzdata applies); True = force daylight time (+1h if tzdata has none).
+    atlas: optional sequence of `tzatlas.AtlasRule` historical overrides,
+    checked (first match wins) before the IANA zone. Neither applies when tz
+    is a fixed offset - a fixed offset is already the caller's final answer."""
+    if dst not in (None, True, False):
+        raise ValueError("dst must be None, True or False")
     warnings: list[str] = []
     year, month, day = date
 
@@ -176,6 +201,7 @@ def resolve(*, date, time=None, place=None, lat=None, lon=None, tz=None,
         lat, lon, address = geocode(place, provider, api_key, user_agent)
 
     # 2) timezone
+    derived = tz is None
     if tz is None:
         tz = tz_for_coords(lat, lon)
         if not tz:
@@ -193,14 +219,44 @@ def resolve(*, date, time=None, place=None, lat=None, lon=None, tz=None,
         time_known = True
 
     # 4) UTC offset
+    dst_h = 0.0
+    rule = None
     fixed = _parse_fixed_offset(tz)
     if fixed is not None:
         offset = fixed
         tz_label = f"UTC{offset:+g}"
     else:
-        offset, w = utc_offset_hours(year, month, day, hour, minute, second, tz, fold)
-        warnings += w
-        tz_label = tz
+        when = _date(year, month, day) if 1 <= year <= 9999 else None
+        if atlas and when is not None:
+            rule = tzatlas.match(atlas, lat, lon, when)
+        zone = rule.zone if (rule and rule.zone) else tz
+        if rule and rule.action == "offset":
+            assert rule.offset_hours is not None
+            offset = rule.offset_hours
+            tz_label = f"UTC{offset:+g}"
+        else:
+            offset, dst_h, w = zone_offset(year, month, day, hour, minute, second,
+                                           zone, fold)
+            warnings += w
+            tz_label = zone
+            if rule and rule.action == "standard" and dst_h:
+                offset -= dst_h
+                dst_h = 0.0
+        if rule:
+            warnings.append(f"historical atlas rule applied: {rule.name} "
+                            f"(source: {rule.source})")
+        if dst is False and dst_h:
+            offset -= dst_h
+            warnings.append(f"dst=False: removed {dst_h:+g}h DST that tzdata applies "
+                            f"for {zone} on this date")
+            dst_h = 0.0
+        elif dst is True and not dst_h:
+            offset += 1.0
+            dst_h = 1.0
+            warnings.append(f"dst=True: added +1h daylight time to {zone} standard time")
+        if rule is None and dst is None and when is not None:
+            warnings += tzatlas.principal_city_warnings(
+                zone, when, dst_hours=dst_h, derived=derived)
 
     # 5) JD(UT) = JD(local civil) - offset/24  (continuous; calendar-correct)
     jd_local = julian_day(year, month, day, hour, minute, second, calendar)
@@ -218,7 +274,8 @@ def resolve(*, date, time=None, place=None, lat=None, lon=None, tz=None,
 
     return ResolvedMoment(jd_ut=jd_ut, lat=lat, lon=lon, tz=tz_label,
                           offset_hours=offset, utc_iso=utc_iso,
-                          time_known=time_known, address=address, warnings=warnings)
+                          time_known=time_known, address=address, warnings=warnings,
+                          dst_hours=dst_h, atlas_rule=rule.name if rule else None)
 
 
 if __name__ == "__main__":

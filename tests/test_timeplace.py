@@ -36,3 +36,108 @@ def test_unknown_time():
     r = tp.resolve(date=(1985, 11, 3), lat=51.5, lon=-0.1, tz=0.0)
     assert not r.time_known
     assert any("birth time unknown" in w for w in r.warnings)
+
+
+# --------------------------------------------------------------------------- #
+# Historical civil time: principal-city warnings, dst= override, atlas rules
+# --------------------------------------------------------------------------- #
+from datetime import date  # noqa: E402
+
+import pytest  # noqa: E402
+
+from openephem import tzatlas  # noqa: E402
+
+
+def _have_zone(name):
+    try:
+        from zoneinfo import ZoneInfo
+        ZoneInfo(name)
+        return True
+    except Exception:
+        return False
+
+
+needs_tzdata = pytest.mark.skipif(
+    not (_have_zone("America/Chicago") and _have_zone("America/Denver")),
+    reason="IANA tzdata not available (pip install tzdata)")
+
+# Synthetic test point: rural central Kansas (round coordinates, not a real birth)
+KS_LAT, KS_LON = 38.5, -98.5
+
+
+@needs_tzdata
+def test_pre1967_us_dst_is_flagged():
+    # Chicago kept DST in 1955; tzdata extends that to all of America/Chicago.
+    r = tp.resolve(date=(1955, 7, 15), time=(12, 0), lat=KS_LAT, lon=KS_LON,
+                   tz="America/Chicago")
+    assert r.offset_hours == -5.0 and r.dst_hours == 1.0
+    assert any("pre-1967 US daylight time" in w for w in r.warnings)
+
+
+@needs_tzdata
+def test_dst_false_forces_standard_time():
+    r = tp.resolve(date=(1955, 7, 15), time=(12, 0), lat=KS_LAT, lon=KS_LON,
+                   tz="America/Chicago", dst=False)
+    assert r.offset_hours == -6.0 and r.dst_hours == 0.0
+    assert r.utc_iso == "1955-07-15T18:00:00+00:00"
+    assert not any("pre-1967" in w for w in r.warnings)
+
+
+@needs_tzdata
+def test_dst_true_adds_hour_when_zone_has_none():
+    r = tp.resolve(date=(1955, 1, 15), time=(12, 0), lat=KS_LAT, lon=KS_LON,
+                   tz="America/Chicago", dst=True)
+    assert r.offset_hours == -5.0 and r.dst_hours == 1.0
+
+
+@needs_tzdata
+def test_modern_dates_not_flagged():
+    r = tp.resolve(date=(1990, 7, 15), time=(12, 0), lat=KS_LAT, lon=KS_LON,
+                   tz="America/Chicago")
+    assert r.offset_hours == -5.0
+    assert not any("principal" in w or "pre-19" in w for w in r.warnings)
+
+
+def test_bad_dst_value():
+    with pytest.raises(ValueError):
+        tp.resolve(date=(1990, 1, 1), time=(0, 0), lat=0.0, lon=0.0, tz=0.0, dst="no")
+
+
+KS_STANDARD = tzatlas.AtlasRule(
+    name="test: Kansas standard time", start=date(1946, 1, 1),
+    end=date(1967, 4, 30), action="standard",
+    bbox=(36.99, -102.06, 40.01, -94.58), source="unit-test fixture")
+
+
+@needs_tzdata
+def test_atlas_standard_rule():
+    r = tp.resolve(date=(1955, 7, 15), time=(12, 0), lat=KS_LAT, lon=KS_LON,
+                   tz="America/Chicago", atlas=[KS_STANDARD])
+    assert r.offset_hours == -6.0 and r.atlas_rule == KS_STANDARD.name
+    assert any("historical atlas rule applied" in w for w in r.warnings)
+    # outside the date range -> plain tzdata
+    r2 = tp.resolve(date=(1975, 7, 15), time=(12, 0), lat=KS_LAT, lon=KS_LON,
+                    tz="America/Chicago", atlas=[KS_STANDARD])
+    assert r2.offset_hours == -5.0 and r2.atlas_rule is None
+
+
+@needs_tzdata
+def test_atlas_zone_rule():
+    rule = tzatlas.AtlasRule(
+        name="test: on Mountain time", start=date(1950, 1, 1), end=date(1960, 1, 1),
+        action="zone", zone="America/Denver", polygon=(
+            (38.0, -99.0), (39.0, -99.0), (39.0, -98.0), (38.0, -98.0)),
+        source="unit-test fixture")
+    r = tp.resolve(date=(1955, 1, 15), time=(12, 0), lat=KS_LAT, lon=KS_LON,
+                   tz="America/Chicago", atlas=[rule])
+    assert r.offset_hours == -7.0 and r.tz == "America/Denver"
+
+
+def test_atlas_offset_rule_and_fixed_tz_precedence():
+    rule = tzatlas.AtlasRule(
+        name="test: fixed", start=date(1900, 1, 1), end=date(1950, 1, 1),
+        action="offset", offset_hours=-6.5, bbox=(0, -10, 10, 10), source="fixture")
+    # a fixed tz is the caller's final answer: atlas is ignored
+    r = tp.resolve(date=(1920, 1, 1), time=(0, 0), lat=5.0, lon=0.0, tz=0.0,
+                   atlas=[rule])
+    assert r.offset_hours == 0.0 and r.atlas_rule is None
