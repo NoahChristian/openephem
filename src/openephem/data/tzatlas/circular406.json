@@ -1,0 +1,1035 @@
+{
+  "note": "tzatlas rules derived by NBS_Time_Process from NBS Circular 406 (1935), Fig. 1, as geofenced zone regions. Opt-in; cite the federal standard-time map; additive vs tzdata.",
+  "rules": [
+    {
+      "name": "AZ on Pacific Standard Time per NBS C406 (1935)",
+      "start": "1918-03-31",
+      "end": "1942-02-09",
+      "action": "offset",
+      "offset_hours": -8.0,
+      "polygon": [
+        [
+          36.7591,
+          -113.1321
+        ],
+        [
+          35.7481,
+          -112.912
+        ],
+        [
+          34.2096,
+          -114.1114
+        ],
+        [
+          34.2096,
+          -114.7548
+        ],
+        [
+          37.0008,
+          -114.7548
+        ],
+        [
+          37.0008,
+          -113.6521
+        ],
+        [
+          36.7591,
+          -113.1321
+        ]
+      ],
+      "source": "NBS Circular 406, 'Standard Time Throughout the World' (issued 1935-03-20), Fig. 1 — the ICC-defined U.S. standard-time-zone map.",
+      "source_url": "https://www.govinfo.gov/app/details/GOVPUB-C13-28b0e7692d1c4ab71ebfbc45910af876",
+      "note": "AZ area shown in the Pacific standard-time zone on the 1935 ICC map, geofenced to the traced boundary; corrects tzdata.",
+      "tags": [
+        "us-zone-boundary",
+        "pacific",
+        "nbs-c406",
+        "provisional"
+      ]
+    },
+    {
+      "name": "FL on Central Standard Time per NBS C406 (1935)",
+      "start": "1918-03-31",
+      "end": "1942-02-09",
+      "action": "offset",
+      "offset_hours": -6.0,
+      "polygon": [
+        [
+          29.9713,
+          -85.1738
+        ],
+        [
+          29.6667,
+          -85.0862
+        ],
+        [
+          29.6667,
+          -85.4175
+        ],
+        [
+          30.2014,
+          -85.4175
+        ],
+        [
+          30.2014,
+          -85.1234
+        ],
+        [
+          29.9713,
+          -85.1738
+        ]
+      ],
+      "source": "NBS Circular 406, 'Standard Time Throughout the World' (issued 1935-03-20), Fig. 1 — the ICC-defined U.S. standard-time-zone map.",
+      "source_url": "https://www.govinfo.gov/app/details/GOVPUB-C13-28b0e7692d1c4ab71ebfbc45910af876",
+      "note": "FL area shown in the Central standard-time zone on the 1935 ICC map, geofenced to the traced boundary; corrects tzdata.",
+      "tags": [
+        "us-zone-boundary",
+        "central",
+        "nbs-c406",
+        "provisional"
+      ]
+    },
+    {
+      "name": "GA on Central Standard Time per NBS C406 (1935)",
+      "start": "1918-03-31",
+      "end": "1942-02-09",
+      "action": "offset",
+      "offset_hours": -6.0,
+      "polygon": [
+        [
+          34.9925,
+          -83.5469
+        ],
+        [
+          34.8721,
+          -83.74
+        ],
+        [
+          34.5899,
+          -83.7847
+        ],
+        [
+          34.2383,
+          -84.3126
+        ],
+        [
+          33.8142,
+          -84.3785
+        ],
+        [
+          33.6402,
+          -84.318
+        ],
+        [
+          33.1099,
+          -83.8495
+        ],
+        [
+          32.8108,
+          -83.7543
+        ],
+        [
+          32.0036,
+          -83.8637
+        ],
+        [
+          31.757,
+          -84.2502
+        ],
+        [
+          30.8673,
+          -84.2893
+        ],
+        [
+          30.702,
+          -84.5442
+        ],
+        [
+          30.69,
+          -85.6052
+        ],
+        [
+          34.9925,
+          -85.6052
+        ],
+        [
+          34.9925,
+          -83.5469
+        ]
+      ],
+      "source": "NBS Circular 406, 'Standard Time Throughout the World' (issued 1935-03-20), Fig. 1 — the ICC-defined U.S. standard-time-zone map.",
+      "source_url": "https://www.govinfo.gov/app/details/GOVPUB-C13-28b0e7692d1c4ab71ebfbc45910af876",
+      "note": "GA area shown in the Central standard-time zone on the 1935 ICC map, geofenced to the traced boundary; corrects tzdata.",
+      "tags": [
+        "us-zone-boundary",
+        "central",
+        "nbs-c406",
+        "provisional"
+      ]
+    },
+    {
+      "name": "IN on Central Standard Time per NBS C406 (1935)",
+      "start": "1918-03-31",
+      "end": "1942-02-09",
+      "action": "offset",
+      "offset_hours": -6.0,
+      "polygon": [
+        [
+          38.901,
+          -85.1403
+        ],
+        [
+          39.3072,
+          -85.1403
+        ],
+        [
+          39.3072,
+          -84.8194
+        ],
+        [
+          38.901,
+          -84.8194
+        ],
+        [
+          38.901,
+          -85.1403
+        ]
+      ],
+      "source": "NBS Circular 406, 'Standard Time Throughout the World' (issued 1935-03-20), Fig. 1 — the ICC-defined U.S. standard-time-zone map.",
+      "source_url": "https://www.govinfo.gov/app/details/GOVPUB-C13-28b0e7692d1c4ab71ebfbc45910af876",
+      "note": "IN area shown in the Central standard-time zone on the 1935 ICC map, geofenced to the traced boundary; corrects tzdata.",
+      "tags": [
+        "us-zone-boundary",
+        "central",
+        "nbs-c406",
+        "provisional"
+      ]
+    },
+    {
+      "name": "KS on Mountain Standard Time per NBS C406 (1935)",
+      "start": "1918-03-31",
+      "end": "1942-02-09",
+      "action": "offset",
+      "offset_hours": -7.0,
+      "polygon": [
+        [
+          38.8592,
+          -99.7037
+        ],
+        [
+          38.27,
+          -99.8211
+        ],
+        [
+          37.8577,
+          -100.2463
+        ],
+        [
+          37.8039,
+          -101.6167
+        ],
+        [
+          37.7363,
+          -101.6985
+        ],
+        [
+          37.7363,
+          -102.0517
+        ],
+        [
+          40.0032,
+          -102.0517
+        ],
+        [
+          40.0032,
+          -99.5842
+        ],
+        [
+          39.0018,
+          -99.5842
+        ],
+        [
+          38.8592,
+          -99.7037
+        ]
+      ],
+      "source": "NBS Circular 406, 'Standard Time Throughout the World' (issued 1935-03-20), Fig. 1 — the ICC-defined U.S. standard-time-zone map.",
+      "source_url": "https://www.govinfo.gov/app/details/GOVPUB-C13-28b0e7692d1c4ab71ebfbc45910af876",
+      "note": "KS area shown in the Mountain standard-time zone on the 1935 ICC map, geofenced to the traced boundary; corrects tzdata.",
+      "tags": [
+        "us-zone-boundary",
+        "mountain",
+        "nbs-c406",
+        "provisional"
+      ]
+    },
+    {
+      "name": "KY on Central Standard Time per NBS C406 (1935)",
+      "start": "1918-03-31",
+      "end": "1942-02-09",
+      "action": "offset",
+      "offset_hours": -6.0,
+      "polygon": [
+        [
+          38.8117,
+          -84.2043
+        ],
+        [
+          38.6445,
+          -82.9845
+        ],
+        [
+          38.3497,
+          -82.6552
+        ],
+        [
+          37.5234,
+          -82.6891
+        ],
+        [
+          37.3635,
+          -82.5296
+        ],
+        [
+          37.1822,
+          -82.4641
+        ],
+        [
+          36.5826,
+          -82.4641
+        ],
+        [
+          36.5826,
+          -86.4908
+        ],
+        [
+          39.1475,
+          -86.4908
+        ],
+        [
+          39.1475,
+          -84.5608
+        ],
+        [
+          38.8117,
+          -84.2043
+        ]
+      ],
+      "source": "NBS Circular 406, 'Standard Time Throughout the World' (issued 1935-03-20), Fig. 1 — the ICC-defined U.S. standard-time-zone map.",
+      "source_url": "https://www.govinfo.gov/app/details/GOVPUB-C13-28b0e7692d1c4ab71ebfbc45910af876",
+      "note": "KY area shown in the Central standard-time zone on the 1935 ICC map, geofenced to the traced boundary; corrects tzdata.",
+      "tags": [
+        "us-zone-boundary",
+        "central",
+        "nbs-c406",
+        "provisional"
+      ]
+    },
+    {
+      "name": "MI on Central Standard Time per NBS C406 (1935)",
+      "start": "1915-05-15",
+      "end": "1936-01-01",
+      "action": "offset",
+      "offset_hours": -6.0,
+      "polygon": [
+        [
+          47.9632,
+          -89.5858
+        ],
+        [
+          48.1277,
+          -88.7331
+        ],
+        [
+          48.0595,
+          -87.8859
+        ],
+        [
+          47.3954,
+          -86.7316
+        ],
+        [
+          47.0125,
+          -85.8093
+        ],
+        [
+          46.0153,
+          -84.4751
+        ],
+        [
+          45.9059,
+          -83.982
+        ],
+        [
+          44.9017,
+          -82.8166
+        ],
+        [
+          44.3628,
+          -82.5139
+        ],
+        [
+          43.9137,
+          -82.4361
+        ],
+        [
+          42.9699,
+          -82.5541
+        ],
+        [
+          42.5505,
+          -82.8027
+        ],
+        [
+          42.2328,
+          -83.3929
+        ],
+        [
+          41.8601,
+          -83.4063
+        ],
+        [
+          41.6961,
+          -83.6867
+        ],
+        [
+          41.6961,
+          -89.8854
+        ],
+        [
+          48.1797,
+          -89.8854
+        ],
+        [
+          47.9632,
+          -89.5858
+        ]
+      ],
+      "source": "NBS Circular 406, 'Standard Time Throughout the World' (issued 1935-03-20), Fig. 1 — the ICC-defined U.S. standard-time-zone map.",
+      "source_url": "https://www.govinfo.gov/app/details/GOVPUB-C13-28b0e7692d1c4ab71ebfbc45910af876",
+      "note": "MI area shown in the Central standard-time zone on the 1935 ICC map, geofenced to the traced boundary; corrects tzdata.",
+      "tags": [
+        "us-zone-boundary",
+        "central",
+        "nbs-c406",
+        "provisional"
+      ]
+    },
+    {
+      "name": "NC on Central Standard Time per NBS C406 (1935)",
+      "start": "1918-03-31",
+      "end": "1942-02-09",
+      "action": "offset",
+      "offset_hours": -6.0,
+      "polygon": [
+        [
+          35.4165,
+          -82.3937
+        ],
+        [
+          35.1147,
+          -82.895
+        ],
+        [
+          34.9866,
+          -83.5143
+        ],
+        [
+          34.9866,
+          -84.3219
+        ],
+        [
+          36.0658,
+          -84.3219
+        ],
+        [
+          36.0658,
+          -82.3016
+        ],
+        [
+          35.4165,
+          -82.3937
+        ]
+      ],
+      "source": "NBS Circular 406, 'Standard Time Throughout the World' (issued 1935-03-20), Fig. 1 — the ICC-defined U.S. standard-time-zone map.",
+      "source_url": "https://www.govinfo.gov/app/details/GOVPUB-C13-28b0e7692d1c4ab71ebfbc45910af876",
+      "note": "NC area shown in the Central standard-time zone on the 1935 ICC map, geofenced to the traced boundary; corrects tzdata.",
+      "tags": [
+        "us-zone-boundary",
+        "central",
+        "nbs-c406",
+        "provisional"
+      ]
+    },
+    {
+      "name": "ND on Central Standard Time per NBS C406 (1935)",
+      "start": "1918-03-31",
+      "end": "1942-02-09",
+      "action": "offset",
+      "offset_hours": -6.0,
+      "polygon": [
+        [
+          45.9737,
+          -102.9207
+        ],
+        [
+          46.2607,
+          -103.7171
+        ],
+        [
+          46.2478,
+          -103.9806
+        ],
+        [
+          46.7715,
+          -104.0461
+        ],
+        [
+          47.8237,
+          -104.0461
+        ],
+        [
+          47.8237,
+          -100.5441
+        ],
+        [
+          45.9445,
+          -100.5441
+        ],
+        [
+          45.9737,
+          -102.9207
+        ]
+      ],
+      "source": "NBS Circular 406, 'Standard Time Throughout the World' (issued 1935-03-20), Fig. 1 — the ICC-defined U.S. standard-time-zone map.",
+      "source_url": "https://www.govinfo.gov/app/details/GOVPUB-C13-28b0e7692d1c4ab71ebfbc45910af876",
+      "note": "ND area shown in the Central standard-time zone on the 1935 ICC map, geofenced to the traced boundary; corrects tzdata.",
+      "tags": [
+        "us-zone-boundary",
+        "central",
+        "nbs-c406",
+        "provisional"
+      ]
+    },
+    {
+      "name": "NE on Mountain Standard Time per NBS C406 (1935)",
+      "start": "1918-03-31",
+      "end": "1942-02-09",
+      "action": "offset",
+      "offset_hours": -7.0,
+      "polygon": [
+        [
+          42.4484,
+          -99.7458
+        ],
+        [
+          42.0311,
+          -99.7169
+        ],
+        [
+          41.7908,
+          -100.0139
+        ],
+        [
+          41.768,
+          -100.7643
+        ],
+        [
+          41.6023,
+          -100.8449
+        ],
+        [
+          40.2531,
+          -100.7405
+        ],
+        [
+          40.9759,
+          -100.7644
+        ],
+        [
+          40.2089,
+          -99.6283
+        ],
+        [
+          40.0013,
+          -99.6283
+        ],
+        [
+          40.0013,
+          -101.4073
+        ],
+        [
+          42.8461,
+          -101.4073
+        ],
+        [
+          42.8461,
+          -100.2679
+        ],
+        [
+          42.4484,
+          -99.7458
+        ]
+      ],
+      "source": "NBS Circular 406, 'Standard Time Throughout the World' (issued 1935-03-20), Fig. 1 — the ICC-defined U.S. standard-time-zone map.",
+      "source_url": "https://www.govinfo.gov/app/details/GOVPUB-C13-28b0e7692d1c4ab71ebfbc45910af876",
+      "note": "NE area shown in the Mountain standard-time zone on the 1935 ICC map, geofenced to the traced boundary; corrects tzdata.",
+      "tags": [
+        "us-zone-boundary",
+        "mountain",
+        "nbs-c406",
+        "provisional"
+      ]
+    },
+    {
+      "name": "NM on Central Standard Time per NBS C406 (1935)",
+      "start": "1918-03-31",
+      "end": "1942-02-09",
+      "action": "offset",
+      "offset_hours": -6.0,
+      "polygon": [
+        [
+          31.3612,
+          -108.2943
+        ],
+        [
+          31.7118,
+          -107.9807
+        ],
+        [
+          31.9257,
+          -106.3405
+        ],
+        [
+          31.3323,
+          -106.3405
+        ],
+        [
+          31.3323,
+          -108.648
+        ],
+        [
+          31.3612,
+          -108.2943
+        ]
+      ],
+      "source": "NBS Circular 406, 'Standard Time Throughout the World' (issued 1935-03-20), Fig. 1 — the ICC-defined U.S. standard-time-zone map.",
+      "source_url": "https://www.govinfo.gov/app/details/GOVPUB-C13-28b0e7692d1c4ab71ebfbc45910af876",
+      "note": "NM area shown in the Central standard-time zone on the 1935 ICC map, geofenced to the traced boundary; corrects tzdata.",
+      "tags": [
+        "us-zone-boundary",
+        "central",
+        "nbs-c406",
+        "provisional"
+      ]
+    },
+    {
+      "name": "OH on Central Standard Time per NBS C406 (1935)",
+      "start": "1918-03-31",
+      "end": "1942-02-09",
+      "action": "offset",
+      "offset_hours": -6.0,
+      "polygon": [
+        [
+          41.5846,
+          -83.8774
+        ],
+        [
+          41.4239,
+          -84.0043
+        ],
+        [
+          40.2735,
+          -84.2383
+        ],
+        [
+          40.1918,
+          -84.3743
+        ],
+        [
+          39.2923,
+          -84.539
+        ],
+        [
+          39.2923,
+          -84.8195
+        ],
+        [
+          41.7201,
+          -84.8195
+        ],
+        [
+          41.7201,
+          -83.8774
+        ],
+        [
+          41.5846,
+          -83.8774
+        ]
+      ],
+      "source": "NBS Circular 406, 'Standard Time Throughout the World' (issued 1935-03-20), Fig. 1 — the ICC-defined U.S. standard-time-zone map.",
+      "source_url": "https://www.govinfo.gov/app/details/GOVPUB-C13-28b0e7692d1c4ab71ebfbc45910af876",
+      "note": "OH area shown in the Central standard-time zone on the 1935 ICC map, geofenced to the traced boundary; corrects tzdata.",
+      "tags": [
+        "us-zone-boundary",
+        "central",
+        "nbs-c406",
+        "provisional"
+      ]
+    },
+    {
+      "name": "OR on Pacific Standard Time per NBS C406 (1935)",
+      "start": "1918-03-31",
+      "end": "1942-02-09",
+      "action": "offset",
+      "offset_hours": -8.0,
+      "polygon": [
+        [
+          44.2661,
+          -117.4383
+        ],
+        [
+          44.172,
+          -117.9181
+        ],
+        [
+          43.9645,
+          -117.8578
+        ],
+        [
+          43.6529,
+          -117.1968
+        ],
+        [
+          41.997,
+          -116.8941
+        ],
+        [
+          41.997,
+          -118.2339
+        ],
+        [
+          44.4447,
+          -118.2339
+        ],
+        [
+          44.4447,
+          -117.2706
+        ],
+        [
+          44.2661,
+          -117.4383
+        ]
+      ],
+      "source": "NBS Circular 406, 'Standard Time Throughout the World' (issued 1935-03-20), Fig. 1 — the ICC-defined U.S. standard-time-zone map.",
+      "source_url": "https://www.govinfo.gov/app/details/GOVPUB-C13-28b0e7692d1c4ab71ebfbc45910af876",
+      "note": "OR area shown in the Pacific standard-time zone on the 1935 ICC map, geofenced to the traced boundary; corrects tzdata.",
+      "tags": [
+        "us-zone-boundary",
+        "pacific",
+        "nbs-c406",
+        "provisional"
+      ]
+    },
+    {
+      "name": "SD on Central Standard Time per NBS C406 (1935)",
+      "start": "1918-03-31",
+      "end": "1942-02-09",
+      "action": "offset",
+      "offset_hours": -6.0,
+      "polygon": [
+        [
+          45.7102,
+          -100.5892
+        ],
+        [
+          45.8205,
+          -100.7637
+        ],
+        [
+          45.772,
+          -102.2055
+        ],
+        [
+          45.212,
+          -102.8963
+        ],
+        [
+          45.2093,
+          -102.9574
+        ],
+        [
+          45.9455,
+          -102.9263
+        ],
+        [
+          45.9455,
+          -100.3082
+        ],
+        [
+          45.0382,
+          -100.3082
+        ],
+        [
+          45.0382,
+          -100.5287
+        ],
+        [
+          45.7102,
+          -100.5892
+        ]
+      ],
+      "source": "NBS Circular 406, 'Standard Time Throughout the World' (issued 1935-03-20), Fig. 1 — the ICC-defined U.S. standard-time-zone map.",
+      "source_url": "https://www.govinfo.gov/app/details/GOVPUB-C13-28b0e7692d1c4ab71ebfbc45910af876",
+      "note": "SD area shown in the Central standard-time zone on the 1935 ICC map, geofenced to the traced boundary; corrects tzdata.",
+      "tags": [
+        "us-zone-boundary",
+        "central",
+        "nbs-c406",
+        "provisional"
+      ]
+    },
+    {
+      "name": "SD on Mountain Standard Time per NBS C406 (1935)",
+      "start": "1918-03-31",
+      "end": "1942-02-09",
+      "action": "offset",
+      "offset_hours": -7.0,
+      "polygon": [
+        [
+          42.9975,
+          -100.4523
+        ],
+        [
+          42.9975,
+          -101.2284
+        ],
+        [
+          44.1687,
+          -101.2284
+        ],
+        [
+          44.1687,
+          -100.5208
+        ],
+        [
+          42.9975,
+          -100.4523
+        ]
+      ],
+      "source": "NBS Circular 406, 'Standard Time Throughout the World' (issued 1935-03-20), Fig. 1 — the ICC-defined U.S. standard-time-zone map.",
+      "source_url": "https://www.govinfo.gov/app/details/GOVPUB-C13-28b0e7692d1c4ab71ebfbc45910af876",
+      "note": "SD area shown in the Mountain standard-time zone on the 1935 ICC map, geofenced to the traced boundary; corrects tzdata.",
+      "tags": [
+        "us-zone-boundary",
+        "mountain",
+        "nbs-c406",
+        "provisional"
+      ]
+    },
+    {
+      "name": "TN on Central Standard Time per NBS C406 (1935)",
+      "start": "1918-03-31",
+      "end": "1942-02-09",
+      "action": "offset",
+      "offset_hours": -6.0,
+      "polygon": [
+        [
+          36.5448,
+          -82.2337
+        ],
+        [
+          35.4165,
+          -82.3937
+        ],
+        [
+          35.1147,
+          -82.895
+        ],
+        [
+          34.983,
+          -83.5318
+        ],
+        [
+          34.983,
+          -85.4755
+        ],
+        [
+          36.6162,
+          -85.4755
+        ],
+        [
+          36.6162,
+          -82.2595
+        ],
+        [
+          36.5448,
+          -82.2337
+        ]
+      ],
+      "source": "NBS Circular 406, 'Standard Time Throughout the World' (issued 1935-03-20), Fig. 1 — the ICC-defined U.S. standard-time-zone map.",
+      "source_url": "https://www.govinfo.gov/app/details/GOVPUB-C13-28b0e7692d1c4ab71ebfbc45910af876",
+      "note": "TN area shown in the Central standard-time zone on the 1935 ICC map, geofenced to the traced boundary; corrects tzdata.",
+      "tags": [
+        "us-zone-boundary",
+        "central",
+        "nbs-c406",
+        "provisional"
+      ]
+    },
+    {
+      "name": "TX on Central Standard Time per NBS C406 (1935)",
+      "start": "1918-03-31",
+      "end": "1942-02-09",
+      "action": "offset",
+      "offset_hours": -6.0,
+      "polygon": [
+        [
+          31.8944,
+          -106.6456
+        ],
+        [
+          31.9207,
+          -105.7129
+        ],
+        [
+          31.9844,
+          -104.9074
+        ],
+        [
+          30.6292,
+          -104.9074
+        ],
+        [
+          30.6292,
+          -106.6456
+        ],
+        [
+          31.8944,
+          -106.6456
+        ]
+      ],
+      "source": "NBS Circular 406, 'Standard Time Throughout the World' (issued 1935-03-20), Fig. 1 — the ICC-defined U.S. standard-time-zone map.",
+      "source_url": "https://www.govinfo.gov/app/details/GOVPUB-C13-28b0e7692d1c4ab71ebfbc45910af876",
+      "note": "TX area shown in the Central standard-time zone on the 1935 ICC map, geofenced to the traced boundary; corrects tzdata.",
+      "tags": [
+        "us-zone-boundary",
+        "central",
+        "nbs-c406",
+        "provisional"
+      ]
+    },
+    {
+      "name": "UT on Pacific Standard Time per NBS C406 (1935)",
+      "start": "1918-03-31",
+      "end": "1942-02-09",
+      "action": "offset",
+      "offset_hours": -8.0,
+      "polygon": [
+        [
+          41.9931,
+          -114.0505
+        ],
+        [
+          42.0015,
+          -113.1005
+        ],
+        [
+          41.9328,
+          -112.8761
+        ],
+        [
+          41.9856,
+          -112.4359
+        ],
+        [
+          41.8491,
+          -112.1801
+        ],
+        [
+          41.2259,
+          -112.0129
+        ],
+        [
+          41.1182,
+          -112.1175
+        ],
+        [
+          40.8392,
+          -112.0573
+        ],
+        [
+          40.2472,
+          -112.2153
+        ],
+        [
+          39.8045,
+          -112.1203
+        ],
+        [
+          38.1474,
+          -113.3749
+        ],
+        [
+          38.1474,
+          -114.0505
+        ],
+        [
+          41.9931,
+          -114.0505
+        ]
+      ],
+      "source": "NBS Circular 406, 'Standard Time Throughout the World' (issued 1935-03-20), Fig. 1 — the ICC-defined U.S. standard-time-zone map.",
+      "source_url": "https://www.govinfo.gov/app/details/GOVPUB-C13-28b0e7692d1c4ab71ebfbc45910af876",
+      "note": "UT area shown in the Pacific standard-time zone on the 1935 ICC map, geofenced to the traced boundary; corrects tzdata.",
+      "tags": [
+        "us-zone-boundary",
+        "pacific",
+        "nbs-c406",
+        "provisional"
+      ]
+    },
+    {
+      "name": "VA on Central Standard Time per NBS C406 (1935)",
+      "start": "1918-03-31",
+      "end": "1942-02-09",
+      "action": "offset",
+      "offset_hours": -6.0,
+      "polygon": [
+        [
+          36.7121,
+          -82.2941
+        ],
+        [
+          36.5935,
+          -82.2941
+        ],
+        [
+          36.5935,
+          -83.6754
+        ],
+        [
+          37.2028,
+          -83.6754
+        ],
+        [
+          37.2028,
+          -82.4715
+        ],
+        [
+          36.7121,
+          -82.2941
+        ]
+      ],
+      "source": "NBS Circular 406, 'Standard Time Throughout the World' (issued 1935-03-20), Fig. 1 — the ICC-defined U.S. standard-time-zone map.",
+      "source_url": "https://www.govinfo.gov/app/details/GOVPUB-C13-28b0e7692d1c4ab71ebfbc45910af876",
+      "note": "VA area shown in the Central standard-time zone on the 1935 ICC map, geofenced to the traced boundary; corrects tzdata.",
+      "tags": [
+        "us-zone-boundary",
+        "central",
+        "nbs-c406",
+        "provisional"
+      ]
+    }
+  ]
+}

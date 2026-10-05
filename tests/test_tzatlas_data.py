@@ -80,16 +80,41 @@ def test_bundled_rules_are_valid_and_sourced():
         assert (r.bbox is None) != (r.polygon is None)
 
 
+def _point_in_ring(lat, lon, ring):
+    """Even-odd point-in-polygon; ``ring`` is a list of (lat, lon)."""
+    inside = False
+    n = len(ring)
+    j = n - 1
+    for i in range(n):
+        lat_i, lon_i = ring[i]
+        lat_j, lon_j = ring[j]
+        if ((lat_i > lat) != (lat_j > lat)) and (
+            lon < (lon_j - lon_i) * (lat - lat_i) / (lat_j - lat_i) + lon_i
+        ):
+            inside = not inside
+        j = i
+    return inside
+
+
 def _sample_points(r):
-    """Centroid + interior-ish corners of a rule's region (pulled slightly inward)."""
+    """Several interior points of a rule's region (a correction may be additive in only part)."""
     if r.bbox is not None:
         a, b, c, d = r.bbox          # min_lat, min_lon, max_lat, max_lon
         dlat, dlon = (c - a) * 0.05, (d - b) * 0.05
         return [((a + c) / 2, (b + d) / 2), (a + dlat, b + dlon), (a + dlat, d - dlon),
                 (c - dlat, b + dlon), (c - dlat, d - dlon)]
     assert r.polygon is not None
-    return [(sum(p[0] for p in r.polygon) / len(r.polygon),
-             sum(p[1] for p in r.polygon) / len(r.polygon))]
+    ring = r.polygon
+    lats = [p[0] for p in ring]
+    lons = [p[1] for p in ring]
+    pts = [(sum(lats) / len(lats), sum(lons) / len(lons))]   # centroid, then an interior grid
+    for i in range(1, 7):
+        for k in range(1, 7):
+            lat = min(lats) + (max(lats) - min(lats)) * i / 7
+            lon = min(lons) + (max(lons) - min(lons)) * k / 7
+            if _point_in_ring(lat, lon, ring):
+                pts.append((lat, lon))
+    return pts
 
 
 @pytest.mark.skipif(not _have_geo(),

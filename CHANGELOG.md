@@ -18,6 +18,16 @@ All notable changes to **openephem** are documented here. The format follows
   CST (−6) year-round for the state, correcting tzdata on both sides (western ND wrongly Mountain;
   eastern ND wrongly given Chicago's summer DST). The small SW-corner Mountain area is flagged, not
   carved out. Apply with `resolve(atlas=openephem.tzatlas.bundled_rules())`.
+- **Bundled ruleset from NBS Circular 406 (1935)** — `data/tzatlas/circular406.json`, 19 opt-in
+  rules extracted from the federal standard-time-zone map (the ICC map in NBS Circular 406, issued
+  1935-03-20) by georeferencing the scan and tracing its zone boundaries. Each rule is a
+  **geofenced zone region** (the traced boundary) giving the standard offset the 1935 map shows,
+  correcting tzdata's pre-1970 principal-city errors: Michigan (Lower + Upper Peninsula, minus
+  Detroit; Central until it adopted Eastern in 1936), the Kentucky/Tennessee/Georgia/Ohio eastern
+  strips, North Dakota, the western-Plains Mountain counties (KS/NE/SD), and the Utah "Ogden"
+  Pacific sliver (the historic SP/UP railroad time junction). Windows run to the 1942 wartime DST
+  adoption (Michigan capped 1936). All validated additive vs tzdata. The additivity test now
+  samples polygon interiors, not just the centroid.
 
 ## [0.4.0] — 2026-10-04
 
