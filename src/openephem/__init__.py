@@ -16,7 +16,7 @@ contract any renderer or app consumes. Data (DE440, asteroid kernels, Hipparcos)
 is fetched at runtime, not shipped.
 """
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 
 from . import (  # noqa: F401 — submodule access (openephem.houses, ...)
     aspects,

@@ -6,6 +6,8 @@ All notable changes to **openephem** are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.5.0] — 2026-10-05
+
 ### Added
 - **`tzatlas` rule-data layer.** `tzatlas.load_rules()` parses JSON rules into `AtlasRule`s and
   `tzatlas.bundled_rules()` loads the rules shipped under `openephem/data/tzatlas/` — **opt-in**
@@ -162,7 +164,8 @@ Initial public release.
 - CI gates: ruff (lint) + mypy (types) + pytest with an 85% coverage gate on the
   pure-computation core, on Python 3.10–3.13 (Linux) and 3.12 (Windows).
 
-[Unreleased]: https://github.com/NoahChristian/openephem/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/NoahChristian/openephem/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/NoahChristian/openephem/releases/tag/v0.5.0
 [0.4.0]: https://github.com/NoahChristian/openephem/releases/tag/v0.4.0
 [0.3.0]: https://github.com/NoahChristian/openephem/releases/tag/v0.3.0
 [0.2.0]: https://github.com/NoahChristian/openephem/releases/tag/v0.2.0
